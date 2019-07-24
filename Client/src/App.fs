@@ -2,6 +2,7 @@ module App
 
 open Fable.Core.JsInterop
 open Fable.Import
+open Browser
 open Browser.WebSocket
 
 let window = Browser.Dom.window
@@ -15,7 +16,13 @@ let mutable myCanvas : Browser.Types.HTMLCanvasElement = unbox window.document.g
 let webSocketProtocol = if window.location.protocol = "https:"  then "wss:" else "ws:"
 let webSocketURI = webSocketProtocol + "//" + window.location.host + "/lobby";
 
-//let socket = WebSocket.Create(webSocketURI)
+let socket = WebSocket.Create(webSocketURI)
+socket.addEventListener_open( 
+  fun a -> 
+    Browser.console.log("hi")
+    ()
+)
+
 
 //socket.send("lol")
 

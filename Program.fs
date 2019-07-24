@@ -1,4 +1,4 @@
-namespace test
+namespace Server
 
 open System
 open System.Collections.Generic

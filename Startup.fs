@@ -1,10 +1,12 @@
-namespace test
+namespace Server
 
 open System
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
+open System.Threading
+open System.Threading.Tasks
 
 type Startup() =
 
@@ -13,6 +15,18 @@ type Startup() =
     member this.ConfigureServices(services: IServiceCollection) =
         services.AddMvc() |> ignore
         ()
+
+    member this.RunServer(webSocket : Net.WebSockets.WebSocket) : Async<unit> =
+        async {
+            let buffer = Array.create 2048 (byte 0)
+
+            // Console.WriteLine("web socket accepted")
+            let task = 
+                webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None) |>
+                Async.AwaitTask
+
+            return ()
+        }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     member this.Configure(app: IApplicationBuilder, env: IHostingEnvironment) =
@@ -31,17 +45,20 @@ type Startup() =
             ) |> ignore
         ) |> ignore
 
-
-        // app.Map("/lobby", fun builder ->
-        
-        //     builder.Use(async (context, next) =>
-        //     {
-        //         if context.WebSockets.IsWebSocketRequest then
-        //             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        //             Console.WriteLine("accepted web socket");
-        //             await RunServer(webSocket);
-        //             return;
-                
-        //         await next();
-        //     });
-        // });
+        app.Map(PathString("/lobby"), fun builder ->
+            builder.Use(
+                fun context next ->
+                        let result : Task =
+                            if context.WebSockets.IsWebSocketRequest then
+                                let task = async { 
+                                    let! websocket = Async.AwaitTask(context.WebSockets.AcceptWebSocketAsync())
+                                    let! result = this.RunServer(websocket)
+                                    result
+                                }
+                                Task.Factory.StartNew(fun () -> Async.RunSynchronously task)
+                                
+                            else
+                                next.Invoke()
+                        result
+            ) |> ignore
+        ) |> ignore
