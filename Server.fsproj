@@ -6,10 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Shared/PlayerPositionUpdateMessage.fs" />
     <Compile Include="Shared/ClientIdMessage.fs" />
     <Compile Include="Shared/MessageId.fs" />
-    <Compile Include="Startup.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="Server/Client.fs" />
+    <Compile Include="Server/Startup.fs" />
+    <Compile Include="Server/Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

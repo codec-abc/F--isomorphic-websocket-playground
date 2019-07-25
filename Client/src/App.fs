@@ -1,12 +1,18 @@
 module App
 
+open System
+open System.Collections.Generic
+
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Browser
-open Browser.WebSocket
+open Browser.Types
 
 open Shared
+open Message
+open ClientIdMessage
+open PlayerPositionUpdateMessage
 
 let window = Browser.Dom.window
 
@@ -14,7 +20,7 @@ let window = Browser.Dom.window
 // As we'll see later, myCanvas is mutable hence the use of the mutable keyword
 // the unbox keyword allows to make an unsafe cast. Here we assume that getElementById will return an HTMLCanvasElement 
 
-let mutable myCanvas : Browser.Types.HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
+let mutable myCanvas : HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
 
 let webSocketProtocol = if window.location.protocol = "https:"  then "wss:" else "ws:"
 let webSocketURI = webSocketProtocol + "//" + window.location.host + "/lobby";
@@ -31,6 +37,8 @@ let createDataView (x: obj) : obj = jsNative
 [<Emit("new ArrayBuffer($0)")>]
 let createArrayBuffer (capacity: int) : obj = jsNative
 
+let mutable myId = 0
+
 socket.addEventListener_message(
     fun a ->
         let blob : Browser.Blob = a?data
@@ -40,13 +48,22 @@ socket.addEventListener_message(
             let mutable arrayBuffer = createArrayBuffer(0)
             arrayBuffer <- a?target?result
             let dv = createDataView arrayBuffer
-            //let integer : int = dv?getInt32(0, isLittleEndian)
             let length : int = dv?byteLength
             let array = Array.create length (byte 0)
+
             for i in 0..length-1 do
                 let byte = dv?getUint8(i)
                 array.[i] <- byte
+
             let message = Message.parse array
+
+            match message with
+                | ClientIdMessage idMessage -> myId <- idMessage.id
+                | PlayerPositionUpdateMessage ppu -> 
+                    // todo handle drawing ()
+                    ()
+                | UnknowMessage -> ()
+
             console.log(message.ToString())
 
         fileReader.readAsArrayBuffer(blob)

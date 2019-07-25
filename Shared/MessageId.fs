@@ -1,16 +1,19 @@
 namespace Shared
 
 open ClientIdMessage
+open PlayerPositionUpdateMessage
 open System
 
 module Message =
 
-    type Message =
+    type public Message =
         | ClientIdMessage of ClientIdMessage
-        | None
+        | PlayerPositionUpdateMessage of PlayerPositionUpdateMessage
+        | UnknowMessage
 
     let parse (bytes : byte[]) : Message =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with 
             | ClientIdMessageId -> ClientIdMessage.parse bytes |> ClientIdMessage
-            | _ -> None
+            | PlayerPositionUpdateMessageId -> PlayerPositionUpdateMessage.parse bytes |> PlayerPositionUpdateMessage
+            | _ -> UnknowMessage
