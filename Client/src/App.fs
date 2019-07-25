@@ -6,6 +6,8 @@ open Fable.Import
 open Browser
 open Browser.WebSocket
 
+open Shared
+
 let window = Browser.Dom.window
 
 // Get our canvas context 
@@ -31,7 +33,6 @@ let createArrayBuffer (capacity: int) : obj = jsNative
 
 socket.addEventListener_message(
     fun a ->
-        let isLittleEndian = true
         let blob : Browser.Blob = a?data
         let fileReader : Browser.FileReader = FileReader.Create()
         
@@ -39,8 +40,14 @@ socket.addEventListener_message(
             let mutable arrayBuffer = createArrayBuffer(0)
             arrayBuffer <- a?target?result
             let dv = createDataView arrayBuffer
-            let integer : int = dv?getInt32(0, isLittleEndian)
-            console.log(integer)
+            //let integer : int = dv?getInt32(0, isLittleEndian)
+            let length : int = dv?byteLength
+            let array = Array.create length (byte 0)
+            for i in 0..length-1 do
+                let byte = dv?getUint8(i)
+                array.[i] <- byte
+            let message = Message.parse array
+            console.log(message.ToString())
 
         fileReader.readAsArrayBuffer(blob)
         ()
