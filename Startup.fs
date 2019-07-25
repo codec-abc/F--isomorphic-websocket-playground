@@ -8,6 +8,9 @@ open Microsoft.Extensions.DependencyInjection
 open System.Threading
 open System.Threading.Tasks
 
+open Shared
+open ClientIdMessage
+
 type Startup() =
 
     let mutable webSocketIdentifier : int = 0
@@ -24,6 +27,15 @@ type Startup() =
             let id = webSocketIdentifier
             Console.WriteLine("web socket accepted. Id = " + id.ToString())
             webSocketIdentifier <- webSocketIdentifier + 1
+
+            webSocket.SendAsync(
+                new ArraySegment<byte>(ClientIdMessage.create(id).ToByteArray()),
+                Net.WebSockets.WebSocketMessageType.Binary, 
+                true, 
+                CancellationToken.None
+                ) 
+                |> Async.AwaitTask 
+                |> ignore
 
             try
                 while true do 

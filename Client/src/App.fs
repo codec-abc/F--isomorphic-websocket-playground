@@ -1,5 +1,6 @@
 module App
 
+open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Browser
@@ -17,14 +18,33 @@ let webSocketProtocol = if window.location.protocol = "https:"  then "wss:" else
 let webSocketURI = webSocketProtocol + "//" + window.location.host + "/lobby";
 
 let socket = WebSocket.Create(webSocketURI)
+
 socket.addEventListener_open( 
-  fun a -> 
-    Browser.console.log("hi")
-    ()
+    ignore
 )
 
+[<Emit("new DataView($0)")>]
+let createDataView (x: obj) : obj = jsNative
 
-//socket.send("lol")
+[<Emit("new ArrayBuffer($0)")>]
+let createArrayBuffer (capacity: int) : obj = jsNative
+
+socket.addEventListener_message(
+    fun a ->
+        let isLittleEndian = true
+        let blob : Browser.Blob = a?data
+        let fileReader : Browser.FileReader = FileReader.Create()
+        
+        fileReader.onload <- fun a ->
+            let mutable arrayBuffer = createArrayBuffer(0)
+            arrayBuffer <- a?target?result
+            let dv = createDataView arrayBuffer
+            let integer : int = dv?getInt32(0, isLittleEndian)
+            console.log(integer)
+
+        fileReader.readAsArrayBuffer(blob)
+        ()
+)
 
 // Get the context
 let ctx = myCanvas.getContext_2d()
@@ -47,22 +67,22 @@ myCanvas.height <- gridWidth
 printfn "%i" steps
 
 // prepare our canvas operations
-[0..steps] // this is a list
-  |> Seq.iter( fun x -> // we iter through the list using an anonymous function
-      let v = float ((x) * squareSize) 
-      ctx.moveTo(v, 0.)
-      ctx.lineTo(v, gridWidth)
-      ctx.moveTo(0., v)
-      ctx.lineTo(gridWidth, v)
-    ) 
-ctx.strokeStyle <- !^"#ddd" // color
+// [0..steps] // this is a list
+//   |> Seq.iter( fun x -> // we iter through the list using an anonymous function
+//       let v = float ((x) * squareSize) 
+//       ctx.moveTo(v, 0.)
+//       ctx.lineTo(v, gridWidth)
+//       ctx.moveTo(0., v)
+//       ctx.lineTo(gridWidth, v)
+//     ) 
+// ctx.strokeStyle <- !^"#ddd" // color
 
 // draw our grid
-ctx.stroke() 
+//ctx.stroke() 
 
 // write Fable
-ctx.textAlign <- "center"
-ctx.fillText("Fable on Canvas", gridWidth * 0.5, gridWidth * 0.5)
+//ctx.textAlign <- "center"
+//ctx.fillText("Fable on Canvas", gridWidth * 0.5, gridWidth * 0.5)
 
 printfn "done!"
 

@@ -29,6 +29,9 @@ Just type
 ```
 dotnet run
 ```
-To run the server
-
+To run the server or
+```
+dotnet watch run
+```
+to compile on change
 TODO : How to publish on deploy on Google App Engine.
