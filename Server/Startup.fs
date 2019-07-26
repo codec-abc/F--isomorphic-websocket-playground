@@ -40,8 +40,6 @@ type Startup() =
                 posY = random.NextDouble() * height
             }
 
-            clients.Add(newClient)
-
             webSocket.SendAsync(
                     buffer = new ArraySegment<byte>(ClientIdMessage.create(id).ToByteArray()),
                     messageType = WebSocketMessageType.Binary, 
@@ -51,8 +49,27 @@ type Startup() =
                 |> Async.AwaitTask 
                 |> ignore
 
+            let tasks = new List<Task>()            
 
-            let tasks = new List<Task>()
+            for client in clients do
+                Console.WriteLine("sending info to client " + client.id.ToString())
+                
+                let msg = 
+                    PlayerPositionUpdateMessage.create(
+                        newClient.id,
+                        newClient.posX,
+                        newClient.posY
+                    )
+
+                client.socket.SendAsync(
+                    buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                    messageType = WebSocketMessageType.Binary, 
+                    endOfMessage = true, 
+                    cancellationToken = CancellationToken.None
+                ) 
+                |> tasks.Add
+
+            clients.Add(newClient)
 
             for client in clients do
                 let msg = 
@@ -74,26 +91,18 @@ type Startup() =
 
             Async.AwaitTask(waitAll) |> ignore
 
-            // try
-            //     let buffer = Array.create 2048 (byte 0)
-            //     while true do 
-            //         let! bytes = 
-            //             webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None) |>
-            //             Async.AwaitTask
-
-            //         webSocket.SendAsync(
-            //                 buffer = new ArraySegment<byte>(buffer), 
-            //                 messageType = WebSocketMessageType.Binary, 
-            //                 endOfMessage = true, 
-            //                 cancellationToken = CancellationToken.None
-            //             ) 
-            //             |> Async.AwaitTask
-            //             |> ignore
-            //     return ()
-            // with 
-            //     | ex ->
-            //         Console.WriteLine("Exception happened (for WebSocket with id ) " + id.ToString() + " in RunServer " + ex.ToString())
-            //         ()
+            try
+                let buffer = Array.create 2048 (byte 0)
+                while true do 
+                    let! bytes = 
+                        webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None) |>
+                        Async.AwaitTask
+                    ()
+                return ()
+            with 
+                | ex ->
+                    Console.WriteLine("Exception happened (for WebSocket with id ) " + id.ToString() + " in RunServer " + ex.ToString())
+                    ()
                             
         }
 

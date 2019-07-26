@@ -37,12 +37,40 @@ let createDataView (x: obj) : obj = jsNative
 [<Emit("new ArrayBuffer($0)")>]
 let createArrayBuffer (capacity: int) : obj = jsNative
 
+type Player = {
+    id : int32
+    posX : float
+    posY : float
+}
+
 let mutable myId = 0
+let players = Dictionary<int, Player>()
+
+// Get the context
+let ctx = myCanvas.getContext_2d()
+
+// All these are immutables values
+let w = myCanvas.width
+let h = myCanvas.height
+
+socket.addEventListener_error(
+    fun a ->
+        console.log("error on websocket.")
+        console.log(a)
+)
+
+socket.addEventListener_close(
+    fun a ->
+        console.log("websocket is closed.")
+        console.log(a)
+)
 
 socket.addEventListener_message(
     fun a ->
         let blob : Browser.Blob = a?data
         let fileReader : Browser.FileReader = FileReader.Create()
+
+        console.log("message received")
         
         fileReader.onload <- fun a ->
             let mutable arrayBuffer = createArrayBuffer(0)
@@ -58,37 +86,40 @@ socket.addEventListener_message(
             let message = Message.parse array
 
             match message with
-                | ClientIdMessage idMessage -> myId <- idMessage.id
+                | ClientIdMessage idMessage -> 
+                    myId <- idMessage.id
                 | PlayerPositionUpdateMessage ppu -> 
-                    // todo handle drawing ()
+                    let player = {
+                            id = ppu.id
+                            posX = ppu.posX
+                            posY = ppu.posY
+                        }
+
+                    if players.ContainsKey(ppu.id) then
+                        players.[ppu.id] <- player
+                    else
+                        players.Add(ppu.id, player)                                        
+                    
+                    ctx.clearRect(0.0, 0.0, w, h)
+
+                    for kvp in players do
+                        if kvp.Key = myId then
+                            ctx.fillStyle <- U3.Case1 "red"
+                        else
+                            ctx.fillStyle <- U3.Case1 "blue"
+                        let player = kvp.Value                        
+                        ctx.fillRect(player.posX, player.posY, 4.0, 4.0)
+
+                | UnknowMessage -> 
+                    console.log("unknow message received")
                     ()
-                | UnknowMessage -> ()
 
             console.log(message.ToString())
 
         fileReader.readAsArrayBuffer(blob)
-        ()
+        false
 )
 
-// Get the context
-let ctx = myCanvas.getContext_2d()
-
-// All these are immutables values
-let w = myCanvas.width
-let h = myCanvas.height
-let steps = 20
-let squareSize = 20
-
-// gridWidth needs a float wo we cast tour int operation to a float using the float keyword
-let gridWidth = float (steps * squareSize) 
-
-// resize our canvas to the size of our grid
-// the arrow <- indicates we're mutating a value. It's a special operator in F#.
-myCanvas.width <- gridWidth
-myCanvas.height <- gridWidth
-
-// print the grid size to our debugger consoloe
-printfn "%i" steps
 
 // prepare our canvas operations
 // [0..steps] // this is a list
