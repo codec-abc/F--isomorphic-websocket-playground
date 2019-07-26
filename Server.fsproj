@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Shared/PlayerPositionUpdateMessage.fs" />
     <Compile Include="Shared/ClientIdMessage.fs" />
+    <Compile Include="Shared/PlayerDisconnectedMessage.fs" />
     <Compile Include="Shared/MessageId.fs" />
     <Compile Include="Server/Client.fs" />
     <Compile Include="Server/Startup.fs" />

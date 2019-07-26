@@ -56,14 +56,22 @@ let h = myCanvas.height
 socket.addEventListener_error(
     fun a ->
         console.log("error on websocket.")
-        console.log(a)
 )
 
 socket.addEventListener_close(
     fun a ->
         console.log("websocket is closed.")
-        console.log(a)
 )
+
+let drawCanvas() = 
+    ctx.clearRect(0.0, 0.0, w, h)
+    for kvp in players do
+    if kvp.Key = myId then
+        ctx.fillStyle <- U3.Case1 "red"
+    else
+        ctx.fillStyle <- U3.Case1 "blue"
+    let player = kvp.Value                        
+    ctx.fillRect(player.posX, player.posY, 4.0, 4.0)
 
 socket.addEventListener_message(
     fun a ->
@@ -102,14 +110,12 @@ socket.addEventListener_message(
                     
                     ctx.clearRect(0.0, 0.0, w, h)
 
-                    for kvp in players do
-                        if kvp.Key = myId then
-                            ctx.fillStyle <- U3.Case1 "red"
-                        else
-                            ctx.fillStyle <- U3.Case1 "blue"
-                        let player = kvp.Value                        
-                        ctx.fillRect(player.posX, player.posY, 4.0, 4.0)
+                    drawCanvas()
 
+                | PlayerDisconnectedMessage msg ->
+                    if players.ContainsKey(msg.idOfDisconnectedPlayer) then
+                        players.Remove(msg.idOfDisconnectedPlayer) |> ignore
+                        drawCanvas()
                 | UnknowMessage -> 
                     console.log("unknow message received")
                     ()

@@ -29,6 +29,7 @@ type Startup() =
 
     member this.RunServer(webSocket : WebSocket) : Async<unit> =
         async {
+
             let id = webSocketIdentifier
             Console.WriteLine("web socket accepted. Id = " + id.ToString())
             webSocketIdentifier <- webSocketIdentifier + 1
@@ -40,58 +41,59 @@ type Startup() =
                 posY = random.NextDouble() * height
             }
 
-            webSocket.SendAsync(
-                    buffer = new ArraySegment<byte>(ClientIdMessage.create(id).ToByteArray()),
-                    messageType = WebSocketMessageType.Binary, 
-                    endOfMessage = true, 
-                    cancellationToken = CancellationToken.None
-                ) 
-                |> Async.AwaitTask 
-                |> ignore
-
-            let tasks = new List<Task>()            
-
-            for client in clients do
-                Console.WriteLine("sending info to client " + client.id.ToString())
-                
-                let msg = 
-                    PlayerPositionUpdateMessage.create(
-                        newClient.id,
-                        newClient.posX,
-                        newClient.posY
-                    )
-
-                client.socket.SendAsync(
-                    buffer = new ArraySegment<byte>(msg.ToByteArray()),
-                    messageType = WebSocketMessageType.Binary, 
-                    endOfMessage = true, 
-                    cancellationToken = CancellationToken.None
-                ) 
-                |> tasks.Add
-
-            clients.Add(newClient)
-
-            for client in clients do
-                let msg = 
-                    PlayerPositionUpdateMessage.create(
-                        client.id,
-                        client.posX,
-                        client.posY
-                    )
+            try
 
                 webSocket.SendAsync(
-                        buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                        buffer = new ArraySegment<byte>(ClientIdMessage.create(id).ToByteArray()),
                         messageType = WebSocketMessageType.Binary, 
                         endOfMessage = true, 
                         cancellationToken = CancellationToken.None
                     ) 
-                    |> tasks.Add
+                    |> Async.AwaitTask 
+                    |> ignore
 
-            let waitAll = Task.WhenAll(tasks)
+                let tasks = new List<Task>()            
 
-            Async.AwaitTask(waitAll) |> ignore
+                for client in clients do
+                    Console.WriteLine("sending info to client " + client.id.ToString())
+                    
+                    let msg = 
+                        PlayerPositionUpdateMessage.create(
+                            newClient.id,
+                            newClient.posX,
+                            newClient.posY
+                        )
+                    try 
+                        client.socket.SendAsync(
+                            buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                            messageType = WebSocketMessageType.Binary, 
+                            endOfMessage = true, 
+                            cancellationToken = CancellationToken.None
+                        ) |> tasks.Add
+                    with | ex -> Console.WriteLine("Error when trying data to client " + client.id.ToString())                    
 
-            try
+                clients.Add(newClient)
+
+                for client in clients do
+                    let msg = 
+                        PlayerPositionUpdateMessage.create(
+                            client.id,
+                            client.posX,
+                            client.posY
+                        )
+
+                    webSocket.SendAsync(
+                            buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                            messageType = WebSocketMessageType.Binary, 
+                            endOfMessage = true, 
+                            cancellationToken = CancellationToken.None
+                        ) 
+                        |> tasks.Add
+
+                let waitAll = Task.WhenAll(tasks)
+
+                Async.AwaitTask(waitAll) |> ignore
+                
                 let buffer = Array.create 2048 (byte 0)
                 while true do 
                     let! bytes = 
@@ -101,7 +103,26 @@ type Startup() =
                 return ()
             with 
                 | ex ->
-                    Console.WriteLine("Exception happened (for WebSocket with id ) " + id.ToString() + " in RunServer " + ex.ToString())
+                    //Console.WriteLine("Exception happened (for WebSocket with id ) " + id.ToString() + " in RunServer " + ex.ToString())
+                    if webSocket.State <> WebSocketState.Open then
+                        Console.WriteLine("Websocket has closed. Removing it client : " + id.ToString())
+                        clients.Remove(newClient) |> ignore
+
+                        for client in clients do
+                            let msg = 
+                                PlayerDisconnectedMessage.create(
+                                    newClient.id
+                                )
+                            try 
+                                client.socket.SendAsync(
+                                    buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                                    messageType = WebSocketMessageType.Binary, 
+                                    endOfMessage = true, 
+                                    cancellationToken = CancellationToken.None
+                                ) |> ignore
+                            with | ex -> 
+                                Console.WriteLine("Error when trying data to client " + client.id.ToString())              
+
                     ()
                             
         }
