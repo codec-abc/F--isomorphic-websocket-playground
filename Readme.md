@@ -1,10 +1,10 @@
 # Dependencies
-* Dotnet core
+* .NET Core
 * Yarn
 * Node.js
 
 # Build
-To build first build the client. It will output a single js file (`bundle.js`) in the `wwwroot` directory.
+To build the whole application, first build the client. It will output a single js file (`bundle.js`) in the `wwwroot` directory.
 
 # Client Build
 The first time you need to install dependencies
@@ -18,14 +18,14 @@ To install both tools you can do the following:
 
 ```
 yarn global add webpack-cli
-yarn global webpack --watch
+yarn global add webpack
 ```
 
 Don't forget to add yarn global directory to path so these executable can be found.
 
-#Server Build
+# Server Build
 
-Just type 
+Once the client is built, you can build the server. Just type :
 ```
 dotnet run
 ```
