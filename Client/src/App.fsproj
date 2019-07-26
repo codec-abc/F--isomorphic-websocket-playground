@@ -14,5 +14,6 @@
     <PackageReference Include="Fable.Import.Browser" Version="1.0.0" />
     <PackageReference Include="Fable.Browser.Dom" Version="1.0.0" />
     <PackageReference Include="Fable.Browser.WebSocket" Version="1.0.0" />
+    <PackageReference Include="Fable.Pixi" Version="1.0.0-beta-001" />
   </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@ open System.Collections.Generic
 
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
+open Fable.Pixi
 open Browser
 open Browser.Types
 
@@ -14,11 +14,7 @@ open Message
 open ClientIdMessage
 open PlayerPositionUpdateMessage
 
-let window = Browser.Dom.window
-
-// Get our canvas context 
-// As we'll see later, myCanvas is mutable hence the use of the mutable keyword
-// the unbox keyword allows to make an unsafe cast. Here we assume that getElementById will return an HTMLCanvasElement 
+let window = Dom.window
 
 let mutable myCanvas : HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
 
@@ -46,12 +42,13 @@ type Player = {
 let mutable myId = 0
 let players = Dictionary<int, Player>()
 
-// Get the context
-let ctx = myCanvas.getContext_2d()
+let PIXI = PIXI.pixi
 
-// All these are immutables values
-let w = myCanvas.width
-let h = myCanvas.height
+let app = PIXI.Application.Create()
+let graphics = PIXI.Graphics.Create()
+app.stage.addChild(graphics) |> ignore
+let view = app.view
+document.body.appendChild view |> ignore
 
 socket.addEventListener_error(
     fun a ->
@@ -63,20 +60,24 @@ socket.addEventListener_close(
         console.log("websocket is closed.")
 )
 
-let drawCanvas() = 
-    ctx.clearRect(0.0, 0.0, w, h)
+let drawApp () = 
+    graphics.clear() |> ignore
     for kvp in players do
-    if kvp.Key = myId then
-        ctx.fillStyle <- U3.Case1 "red"
-    else
-        ctx.fillStyle <- U3.Case1 "blue"
-    let player = kvp.Value                        
-    ctx.fillRect(player.posX, player.posY, 4.0, 4.0)
+        let player = kvp.Value 
+        if kvp.Key = myId then
+            graphics.beginFill(float 0xDE3249) |> ignore
+            graphics.drawRect(player.posX, player.posY, 4.0, 4.0) |> ignore
+            graphics.endFill() |> ignore
+        else
+            graphics.beginFill(float 0x3500FA) |> ignore
+            graphics.drawRect(player.posX, player.posY, 4.0, 4.0) |> ignore
+            graphics.endFill() |> ignore
+    ()
 
 socket.addEventListener_message(
     fun a ->
-        let blob : Browser.Blob = a?data
-        let fileReader : Browser.FileReader = FileReader.Create()
+        let blob : Fable.Import.Browser.Blob = a?data
+        let fileReader : Fable.Import.Browser.FileReader = Fable.Import.Browser.FileReader.Create()
 
         console.log("message received")
         
@@ -107,15 +108,13 @@ socket.addEventListener_message(
                         players.[ppu.id] <- player
                     else
                         players.Add(ppu.id, player)                                        
-                    
-                    ctx.clearRect(0.0, 0.0, w, h)
 
-                    drawCanvas()
+                    drawApp()
 
                 | PlayerDisconnectedMessage msg ->
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
                         players.Remove(msg.idOfDisconnectedPlayer) |> ignore
-                        drawCanvas()
+                        drawApp()
                 | UnknowMessage -> 
                     console.log("unknow message received")
                     ()
@@ -126,25 +125,4 @@ socket.addEventListener_message(
         false
 )
 
-
-// prepare our canvas operations
-// [0..steps] // this is a list
-//   |> Seq.iter( fun x -> // we iter through the list using an anonymous function
-//       let v = float ((x) * squareSize) 
-//       ctx.moveTo(v, 0.)
-//       ctx.lineTo(v, gridWidth)
-//       ctx.moveTo(0., v)
-//       ctx.lineTo(gridWidth, v)
-//     ) 
-// ctx.strokeStyle <- !^"#ddd" // color
-
-// draw our grid
-//ctx.stroke() 
-
-// write Fable
-//ctx.textAlign <- "center"
-//ctx.fillText("Fable on Canvas", gridWidth * 0.5, gridWidth * 0.5)
-
 printfn "done!"
-
-
