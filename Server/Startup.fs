@@ -101,10 +101,10 @@ type Startup() =
                         Async.AwaitTask
                         
                     if result.EndOfMessage then
-                        let msg = Message.parse buffer
+                        let msg = parseClientMessage buffer
                         match msg with
                         | PlayerMoveMessage pm ->
-                        
+
                             newClient.posX <- pm.newPosX
                             newClient.posY <- pm.newPosY
 

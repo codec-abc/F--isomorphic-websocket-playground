@@ -8,18 +8,26 @@ open System
 
 module Message =
 
-    type public Message =
+    type public ServerMessage =
         | ClientIdMessage of ClientIdMessage
         | PlayerPositionUpdateMessage of PlayerPositionUpdateMessage
         | PlayerDisconnectedMessage of PlayerDisconnectedMessage
+        | UnknowMessage
+
+    type public ClientMessage =
         | PlayerMoveMessage of PlayerMoveMessage
         | UnknowMessage
 
-    let parse (bytes : byte[]) : Message =
+    let parseServerMessage (bytes : byte[]) : ServerMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with 
             | ClientIdMessageId -> ClientIdMessage.parse bytes |> ClientIdMessage
             | PlayerPositionUpdateMessageId -> PlayerPositionUpdateMessage.parse bytes |> PlayerPositionUpdateMessage
             | PlayerDisconnectedMessageId -> PlayerDisconnectedMessage.parse bytes |> PlayerDisconnectedMessage
-            | PlayerMoveMessageId -> PlayerMoveMessage.parse bytes |> PlayerMoveMessage
-            | _ -> UnknowMessage
+            | _ -> ServerMessage.UnknowMessage
+
+    let parseClientMessage (bytes : byte[]) : ClientMessage =
+        let messageId = BitConverter.ToInt32(bytes, 0)
+        match messageId with
+            | PlayerMoveMessageId -> PlayerMoveMessage.parse bytes |> PlayerMoveMessage 
+            | _ -> ClientMessage.UnknowMessage       

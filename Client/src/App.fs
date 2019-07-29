@@ -159,7 +159,7 @@ socket.addEventListener_message(
                 let byte = dv?getUint8(i)
                 array.[i] <- byte
 
-            let message = Message.parse array
+            let message = Message.parseServerMessage array
 
             match message with
                 | ClientIdMessage idMessage -> 
@@ -188,11 +188,9 @@ socket.addEventListener_message(
                 | PlayerDisconnectedMessage msg ->
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
                         players.Remove(msg.idOfDisconnectedPlayer) |> ignore
-                        drawApp()
+                        drawApp()                   
 
-                | PlayerMoveMessage _ -> ()                    
-
-                | UnknowMessage -> 
+                | ServerMessage.UnknowMessage -> 
                     console.log("unknow message received")
                     ()
 
