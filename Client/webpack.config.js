@@ -12,7 +12,7 @@ module.exports = {
         filename: "bundle.js",
     },
     devServer: {
-        contentBase: "./public",
+        contentBase: path.join(__dirname, "../wwwroot"),
         port: 8080,
     },
     module: {

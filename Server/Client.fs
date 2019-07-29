@@ -6,6 +6,6 @@ module Client =
     type Client = {
         socket : WebSocket
         id : int32
-        posX : float
-        posY : float
+        mutable posX : float
+        mutable posY : float
     }

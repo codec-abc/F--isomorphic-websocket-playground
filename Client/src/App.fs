@@ -19,7 +19,9 @@ let window = Dom.window
 let mutable myCanvas : HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
 
 let webSocketProtocol = if window.location.protocol = "https:"  then "wss:" else "ws:"
-let webSocketURI = webSocketProtocol + "//" + window.location.host + "/lobby";
+let mutable webSocketURI = webSocketProtocol + "//" + window.location.host + "/lobby";
+
+webSocketURI <- webSocketURI.Replace("8080", "5000")
 
 let socket = WebSocket.Create(webSocketURI)
 
@@ -33,13 +35,18 @@ let createDataView (x: obj) : obj = jsNative
 [<Emit("new ArrayBuffer($0)")>]
 let createArrayBuffer (capacity: int) : obj = jsNative
 
+type Vector2 = {
+    X : float
+    Y : float
+}
+
 type Player = {
     id : int32
     posX : float
     posY : float
 }
 
-let mutable myId = 0
+let mutable myId = -1
 let players = Dictionary<int, Player>()
 
 let PIXI = PIXI.pixi
@@ -49,6 +56,66 @@ let graphics = PIXI.Graphics.Create()
 app.stage.addChild(graphics) |> ignore
 let view = app.view
 document.body.appendChild view |> ignore
+
+let keysStates = Dictionary<char, bool>()
+
+let getKeyState (key : char) =
+    if keysStates.ContainsKey key then
+        keysStates.[key]
+    else
+        false
+
+let intervalMs = 8
+let updateDelta = 2.0
+
+let intervalId = 
+    window.setInterval(
+        fun intervalEvent ->
+            if myId >= 0 then
+                let moveVectorY = 
+                    if getKeyState('W') then -1.0 else 0.0 
+                    + if getKeyState('S') then 1.0 else 0.0
+
+                let moveVectorX = 
+                    if getKeyState('D') then 1.0 else 0.0 
+                    + if getKeyState('A') then -1.0 else 0.0
+
+                let moveVector = { X = moveVectorX; Y = moveVectorY }
+
+                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
+
+                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
+                    let newPos = {
+                        X = currentPos.X + moveVector.X * updateDelta
+                        Y = currentPos.Y + moveVector.Y * updateDelta
+                    }
+
+                    let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
+
+                    // console.log("sending update " + newPos.X.ToString() + " " + newPos.Y.ToString())
+
+                    socket.send(
+                        msg                    
+                    )
+        ,
+        intervalMs
+)    
+
+window.addEventListener(
+    "keyup",
+    fun event -> 
+        let keyCode : int = event?keyCode
+        let key = char keyCode
+        keysStates.[key] <- false
+)
+
+window.addEventListener(
+    "keydown",
+    fun event -> 
+        let keyCode : int = event?keyCode
+        let key = char keyCode
+        keysStates.[key] <- true
+)
 
 socket.addEventListener_error(
     fun a ->
@@ -79,7 +146,7 @@ socket.addEventListener_message(
         let blob : Fable.Import.Browser.Blob = a?data
         let fileReader : Fable.Import.Browser.FileReader = Fable.Import.Browser.FileReader.Create()
 
-        console.log("message received")
+        // console.log("message received")
         
         fileReader.onload <- fun a ->
             let mutable arrayBuffer = createArrayBuffer(0)
@@ -97,6 +164,13 @@ socket.addEventListener_message(
             match message with
                 | ClientIdMessage idMessage -> 
                     myId <- idMessage.id
+                    let player = {
+                            id = idMessage.id
+                            posX = idMessage.posX
+                            posY = idMessage.posY
+                    }
+                    players.Add(idMessage.id, player)
+
                 | PlayerPositionUpdateMessage ppu -> 
                     let player = {
                             id = ppu.id
@@ -115,11 +189,14 @@ socket.addEventListener_message(
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
                         players.Remove(msg.idOfDisconnectedPlayer) |> ignore
                         drawApp()
+
+                | PlayerMoveMessage _ -> ()                    
+
                 | UnknowMessage -> 
                     console.log("unknow message received")
                     ()
 
-            console.log(message.ToString())
+            // console.log(message.ToString())
 
         fileReader.readAsArrayBuffer(blob)
         false

@@ -12,6 +12,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 
 open Shared
+open Message
 open ClientIdMessage
 open Client
 
@@ -42,17 +43,20 @@ type Startup() =
             }
 
             try
-
                 webSocket.SendAsync(
-                        buffer = new ArraySegment<byte>(ClientIdMessage.create(id).ToByteArray()),
+                        buffer = new ArraySegment<byte>(
+                            ClientIdMessage.create(
+                                id, 
+                                newClient.posX, 
+                                newClient.posY
+                            ).ToByteArray()
+                        ),
                         messageType = WebSocketMessageType.Binary, 
                         endOfMessage = true, 
                         cancellationToken = CancellationToken.None
                     ) 
                     |> Async.AwaitTask 
-                    |> ignore
-
-                let tasks = new List<Task>()            
+                    |> ignore           
 
                 for client in clients do
                     Console.WriteLine("sending info to client " + client.id.ToString())
@@ -69,7 +73,7 @@ type Startup() =
                             messageType = WebSocketMessageType.Binary, 
                             endOfMessage = true, 
                             cancellationToken = CancellationToken.None
-                        ) |> tasks.Add
+                        ) |> ignore
                     with | ex -> Console.WriteLine("Error when trying data to client " + client.id.ToString())                    
 
                 clients.Add(newClient)
@@ -88,18 +92,39 @@ type Startup() =
                             endOfMessage = true, 
                             cancellationToken = CancellationToken.None
                         ) 
-                        |> tasks.Add
-
-                let waitAll = Task.WhenAll(tasks)
-
-                Async.AwaitTask(waitAll) |> ignore
+                        |> ignore
                 
                 let buffer = Array.create 2048 (byte 0)
                 while true do 
-                    let! bytes = 
+                    let! result = 
                         webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None) |>
                         Async.AwaitTask
-                    ()
+                        
+                    if result.EndOfMessage then
+                        let msg = Message.parse buffer
+                        match msg with
+                        | PlayerMoveMessage pm ->
+                        
+                            newClient.posX <- pm.newPosX
+                            newClient.posY <- pm.newPosY
+
+                            for client in clients do
+                                let msg = 
+                                    PlayerPositionUpdateMessage.create(
+                                        id,
+                                        pm.newPosX,
+                                        pm.newPosY
+                                    )
+                                try 
+                                    client.socket.SendAsync(
+                                        buffer = new ArraySegment<byte>(msg.ToByteArray()),
+                                        messageType = WebSocketMessageType.Binary, 
+                                        endOfMessage = true, 
+                                        cancellationToken = CancellationToken.None
+                                    ) |> ignore
+                                with | ex -> 
+                                    Console.WriteLine("Error when trying data to client " + client.id.ToString())   
+                        | _ -> ()
                 return ()
             with 
                 | ex ->

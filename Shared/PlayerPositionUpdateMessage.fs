@@ -17,10 +17,10 @@ module PlayerPositionUpdateMessage =
             let header = BitConverter.GetBytes(PlayerPositionUpdateMessageId)
 
             Array.concat [ 
-                header ; 
-                BitConverter.GetBytes(this.id);
-                BitConverter.GetBytes(this.posX);
-                BitConverter.GetBytes(this.posY);
+                header
+                BitConverter.GetBytes(this.id)
+                BitConverter.GetBytes(this.posX)
+                BitConverter.GetBytes(this.posY)
             ]
 
     let public create(id : int, posX : float, posY : float) : PlayerPositionUpdateMessage =
