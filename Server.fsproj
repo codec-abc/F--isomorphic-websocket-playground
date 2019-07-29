@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Shared/Vector2.fs" />
     <Compile Include="Shared/PlayerPositionUpdateMessage.fs" />
     <Compile Include="Shared/ClientIdMessage.fs" />
     <Compile Include="Shared/PlayerDisconnectedMessage.fs" />

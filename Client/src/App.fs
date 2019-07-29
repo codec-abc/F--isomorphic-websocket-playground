@@ -13,6 +13,7 @@ open Shared
 open Message
 open ClientIdMessage
 open PlayerPositionUpdateMessage
+open MathUtil
 
 let window = Dom.window
 
@@ -34,11 +35,6 @@ let createDataView (x: obj) : obj = jsNative
 
 [<Emit("new ArrayBuffer($0)")>]
 let createArrayBuffer (capacity: int) : obj = jsNative
-
-type Vector2 = {
-    X : float
-    Y : float
-}
 
 type Player = {
     id : int32
@@ -80,16 +76,15 @@ let intervalId =
                     if getKeyState('D') then 1.0 else 0.0 
                     + if getKeyState('A') then -1.0 else 0.0
 
-                let moveVector = { X = moveVectorX; Y = moveVectorY }
-
-                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
-
-                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
-                    let newPos = {
-                        X = currentPos.X + moveVector.X * updateDelta
-                        Y = currentPos.Y + moveVector.Y * updateDelta
+                let moveVector = 
+                    { 
+                        X = moveVectorX
+                        Y = moveVectorY 
                     }
 
+                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
+                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
+                    let newPos = currentPos + moveVector * updateDelta
                     let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
 
                     // console.log("sending update " + newPos.X.ToString() + " " + newPos.Y.ToString())
