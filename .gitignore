@@ -1,4 +1,6 @@
 wwwroot/bundle.js
+wwwroot/*
+!wwwroot/index.html
 
 public/bundle.js*
 

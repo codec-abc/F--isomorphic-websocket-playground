@@ -3,11 +3,19 @@ namespace MathUtil
 open System
 
 type Vector2 = {
-    X : float
-    Y : float
+    mutable X : float
+    mutable Y : float
 } with
     member public this.Magnitude() =
         Math.Sqrt(this.X * this.X + this.Y * this.Y)
+
+    member public this.Normalized() =
+        this * (1.0 / this.Magnitude())
+
+    member public this.Normalize() =
+        let normalized = this.Normalized()
+        this.X <- normalized.X
+        this.Y <- normalized.Y
 
     static member public (+) (a : Vector2, other : Vector2) =
         {

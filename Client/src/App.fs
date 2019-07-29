@@ -48,10 +48,46 @@ let players = Dictionary<int, Player>()
 let PIXI = PIXI.pixi
 
 let app = PIXI.Application.Create()
-let graphics = PIXI.Graphics.Create()
-app.stage.addChild(graphics) |> ignore
 let view = app.view
 document.body.appendChild view |> ignore
+
+let playerSpriteBody = PIXI.Sprite.from("top-down-shooter/characters/body/3.png")
+let playerSpriteHead = PIXI.Sprite.from("top-down-shooter/characters/head/2.png")
+
+let ennemySpriteBody = PIXI.Sprite.from("top-down-shooter/characters/body/1.png")
+let ennemySpriteHead = PIXI.Sprite.from("top-down-shooter/characters/head/1.png")
+
+let createPlayerContainer () = 
+    let playerContainer = PIXI.Container.Create()
+    let spriteHead = PIXI.Sprite.Create(playerSpriteHead.texture)
+    let spriteBody= PIXI.Sprite.Create(playerSpriteBody.texture)
+    spriteBody.x <- -11.0
+    spriteBody.y <- -7.0
+    spriteHead.x <- -11.0 + 3.0
+    spriteHead.y <- -7.0 - 5.0
+    playerContainer.addChild(spriteBody) |> ignore
+    playerContainer.addChild(spriteHead) |> ignore
+    playerContainer
+
+let createEnnemyContainer () = 
+    let ennemyContainer = PIXI.Container.Create()
+    let spriteHead = PIXI.Sprite.Create(ennemySpriteHead.texture)
+    let spriteBody= PIXI.Sprite.Create(ennemySpriteBody.texture)
+    spriteBody.x <- -11.0
+    spriteBody.y <- -7.0
+    spriteHead.x <- -11.0 + 3.0
+    spriteHead.y <- -7.0 - 5.0
+    ennemyContainer.addChild(spriteBody) |> ignore
+    ennemyContainer.addChild(spriteHead) |> ignore
+    ennemyContainer
+
+let playerContainer = createPlayerContainer()
+
+app.stage.addChild(playerContainer) |> ignore
+
+let ennemiesRoot = PIXI.Container.Create()
+
+app.stage.addChild(ennemiesRoot) |> ignore
 
 let keysStates = Dictionary<char, bool>()
 
@@ -123,18 +159,20 @@ socket.addEventListener_close(
 )
 
 let drawApp () = 
-    graphics.clear() |> ignore
+    // TODO : avoid re-create ennemies each frame
+    let count = ennemiesRoot.children.Count
+    for i in 0..count - 1 do
+        ennemiesRoot.removeChildAt(0.0) |> ignore
     for kvp in players do
         let player = kvp.Value 
         if kvp.Key = myId then
-            graphics.beginFill(float 0xDE3249) |> ignore
-            graphics.drawRect(player.posX, player.posY, 4.0, 4.0) |> ignore
-            graphics.endFill() |> ignore
+            playerContainer.x <- player.posX
+            playerContainer.y <- player.posY
         else
-            graphics.beginFill(float 0x3500FA) |> ignore
-            graphics.drawRect(player.posX, player.posY, 4.0, 4.0) |> ignore
-            graphics.endFill() |> ignore
-    ()
+            let container = createEnnemyContainer()
+            container.x <- player.posX
+            container.y <- player.posY
+            ennemiesRoot.addChild(container) |> ignore
 
 socket.addEventListener_message(
     fun a ->
