@@ -120,7 +120,7 @@ let intervalId =
 
                 if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
                     let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
-                    let newPos = currentPos + moveVector * updateDelta
+                    let newPos = currentPos + moveVector.Normalized() * updateDelta
                     let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
 
                     // console.log("sending update " + newPos.X.ToString() + " " + newPos.Y.ToString())
