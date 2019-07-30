@@ -38,8 +38,9 @@ let createArrayBuffer (capacity: int) : obj = jsNative
 
 type Player = {
     id : int32
-    posX : float
-    posY : float
+    mutable posX : float
+    mutable posY : float
+    mutable lookingAngle : float
 }
 
 let mutable myId = -1
@@ -56,6 +57,9 @@ let playerSpriteHead = PIXI.Sprite.from("top-down-shooter/characters/head/2.png"
 
 let ennemySpriteBody = PIXI.Sprite.from("top-down-shooter/characters/body/1.png")
 let ennemySpriteHead = PIXI.Sprite.from("top-down-shooter/characters/head/1.png")
+
+app.renderer.plugins.interaction.cursorStyles.Item 
+    "default" <- Some ("url('top-down-shooter/hud/cursor.png') 10 10 , auto" :> Object)
 
 let createPlayerContainer () = 
     let playerContainer = PIXI.Container.Create()
@@ -100,37 +104,6 @@ let getKeyState (key : char) =
 let intervalMs = 8
 let updateDelta = 2.0
 
-let intervalId = 
-    window.setInterval(
-        fun intervalEvent ->
-            if myId >= 0 then
-                let moveVectorY = 
-                    if getKeyState('W') then -1.0 else 0.0 
-                    + if getKeyState('S') then 1.0 else 0.0
-
-                let moveVectorX = 
-                    if getKeyState('D') then 1.0 else 0.0 
-                    + if getKeyState('A') then -1.0 else 0.0
-
-                let moveVector = 
-                    { 
-                        X = moveVectorX
-                        Y = moveVectorY 
-                    }
-
-                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
-                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
-                    let newPos = currentPos + moveVector.Normalized() * updateDelta
-                    let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
-
-                    // console.log("sending update " + newPos.X.ToString() + " " + newPos.Y.ToString())
-
-                    socket.send(
-                        msg                    
-                    )
-        ,
-        intervalMs
-)    
 
 window.addEventListener(
     "keyup",
@@ -168,11 +141,68 @@ let drawApp () =
         if kvp.Key = myId then
             playerContainer.x <- player.posX
             playerContainer.y <- player.posY
+            playerContainer.rotation <- player.lookingAngle - Math.PI / 2.0
         else
             let container = createEnnemyContainer()
             container.x <- player.posX
             container.y <- player.posY
+            container.rotation <- player.lookingAngle - Math.PI / 2.0
             ennemiesRoot.addChild(container) |> ignore
+
+let intervalId = 
+    window.setInterval(
+        fun intervalEvent ->
+            if myId >= 0 then
+                let moveVectorY = 
+                    if getKeyState('W') then -1.0 else 0.0 
+                    + if getKeyState('S') then 1.0 else 0.0
+
+                let moveVectorX = 
+                    if getKeyState('D') then 1.0 else 0.0 
+                    + if getKeyState('A') then -1.0 else 0.0
+
+                let moveVector = 
+                    { 
+                        X = moveVectorX
+                        Y = moveVectorY 
+                    }
+
+                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
+                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
+                    let newPos = currentPos + moveVector.Normalized() * updateDelta
+                    let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
+
+                    players.[myId].posX <- newPos.X
+                    players.[myId].posY <- newPos.Y
+
+                    socket.send(
+                        msg                    
+                    )
+
+                let mousePosition = app.renderer.plugins.interaction.mouse.``global``
+
+                let mousePos = {
+                    X = mousePosition.x
+                    Y = mousePosition.y
+                }
+
+                let myPos = {
+                    X = players.[myId].posX
+                    Y = players.[myId].posY
+                }
+
+                let dir = (mousePos - myPos).Normalized()
+
+                let angle = atan2 dir.Y dir.X
+                players.[myId].lookingAngle <- angle                
+
+                //console.log("Mouse pos " + mousePosition.x.ToString() + " " + mousePosition.y.ToString())
+
+                drawApp()                
+                ()                
+        ,
+        intervalMs
+)        
 
 socket.addEventListener_message(
     fun a ->
@@ -201,6 +231,7 @@ socket.addEventListener_message(
                             id = idMessage.id
                             posX = idMessage.posX
                             posY = idMessage.posY
+                            lookingAngle = 0.0 //TODO
                     }
                     players.Add(idMessage.id, player)
 
@@ -209,14 +240,14 @@ socket.addEventListener_message(
                             id = ppu.id
                             posX = ppu.posX
                             posY = ppu.posY
+                            lookingAngle = 0.0
                         }
 
-                    if players.ContainsKey(ppu.id) then
-                        players.[ppu.id] <- player
-                    else
-                        players.Add(ppu.id, player)                                        
-
-                    drawApp()
+                    if ppu.id <> myId then
+                        if players.ContainsKey(ppu.id) then
+                            players.[ppu.id] <- player
+                        else
+                            players.Add(ppu.id, player)                                        
 
                 | PlayerDisconnectedMessage msg ->
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
@@ -232,5 +263,3 @@ socket.addEventListener_message(
         fileReader.readAsArrayBuffer(blob)
         false
 )
-
-printfn "done!"
