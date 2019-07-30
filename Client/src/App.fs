@@ -100,11 +100,6 @@ let getKeyState (key : char) =
         keysStates.[key]
     else
         false
-
-let intervalMs = 8
-let updateDelta = 2.0
-
-
 window.addEventListener(
     "keyup",
     fun event -> 
@@ -148,6 +143,9 @@ let drawApp () =
             container.y <- player.posY
             container.rotation <- player.lookingAngle - Math.PI / 2.0
             ennemiesRoot.addChild(container) |> ignore
+
+let intervalMs = 8
+let updateDelta = 2.0
 
 let intervalId = 
     window.setInterval(
@@ -194,9 +192,7 @@ let intervalId =
                 let dir = (mousePos - myPos).Normalized()
 
                 let angle = atan2 dir.Y dir.X
-                players.[myId].lookingAngle <- angle                
-
-                //console.log("Mouse pos " + mousePosition.x.ToString() + " " + mousePosition.y.ToString())
+                players.[myId].lookingAngle <- angle
 
                 drawApp()                
                 ()                
@@ -209,8 +205,6 @@ socket.addEventListener_message(
         let blob : Fable.Import.Browser.Blob = a?data
         let fileReader : Fable.Import.Browser.FileReader = Fable.Import.Browser.FileReader.Create()
 
-        // console.log("message received")
-        
         fileReader.onload <- fun a ->
             let mutable arrayBuffer = createArrayBuffer(0)
             arrayBuffer <- a?target?result
@@ -251,15 +245,12 @@ socket.addEventListener_message(
 
                 | PlayerDisconnectedMessage msg ->
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
-                        players.Remove(msg.idOfDisconnectedPlayer) |> ignore
-                        drawApp()                   
+                        players.Remove(msg.idOfDisconnectedPlayer) |> ignore                 
 
                 | ServerMessage.UnknowMessage -> 
                     console.log("unknow message received")
                     ()
-
-            // console.log(message.ToString())
-
+                    
         fileReader.readAsArrayBuffer(blob)
         false
 )
