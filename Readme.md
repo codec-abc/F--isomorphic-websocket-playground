@@ -34,4 +34,7 @@ To run the server or
 dotnet watch run
 ```
 to compile on change
-TODO : How to publish on deploy on Google App Engine.
+
+# Google App Engine deployment
+
+[Follow guide here](https://cloud.google.com/appengine/docs/flexible/dotnet/quickstart) and [here](https://cloud.google.com/appengine/docs/flexible/dotnet/testing-and-deploying-your-app)
