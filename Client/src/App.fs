@@ -98,8 +98,7 @@ type App() =
         _window.addEventListener("keydown", fun event -> this.OnKeyDown(event))
 
         _intervalId <- _window.setInterval(
-                fun event -> 
-                    this.OnUpdate()
+                fun event -> this.OnUpdate()
                 , 
                 _intervalMs
         )
@@ -114,7 +113,8 @@ type App() =
     member this.OnSocketClose(a : CloseEvent) =
         console.log("websocket is closed.")
 
-    member this.HandleMessage (message : ServerMessage) =
+    member this.HandleMessage(message : ServerMessage) =
+        //console.log("got message " + message.ToString())
         match message with
             | ServerMessageNewClientId idMessage -> 
                 _playerId <- idMessage.id
@@ -158,7 +158,7 @@ type App() =
             let length : int = dv?byteLength
             let array = Array.create length (byte 0)
 
-            for i in 0..length-1 do
+            for i in 0..(length - 1) do
                 let byte = dv?getUint8(i)
                 array.[i] <- byte
 
