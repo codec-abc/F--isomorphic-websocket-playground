@@ -1,33 +1,33 @@
 namespace Shared
 
 open ClientIdMessage
-open PlayerPositionUpdateMessage
+open PlayerTransformUpdateMessage
 open PlayerDisconnectedMessage
-open PlayerMoveMessage
+open PlayerMoveRotateMessage
 open System
 
 module Message =
 
     type public ServerMessage =
         | ClientIdMessage of ClientIdMessage
-        | PlayerPositionUpdateMessage of PlayerPositionUpdateMessage
+        | PlayerTransformUpdateMessage of PlayerTransformUpdateMessage
         | PlayerDisconnectedMessage of PlayerDisconnectedMessage
         | UnknowMessage
 
     type public ClientMessage =
-        | PlayerMoveMessage of PlayerMoveMessage
+        | PlayerMoveRotateMessage of PlayerMoveRotateMessage
         | UnknowMessage
 
     let parseServerMessage (bytes : byte[]) : ServerMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with 
             | ClientIdMessageId -> ClientIdMessage.parse bytes |> ClientIdMessage
-            | PlayerPositionUpdateMessageId -> PlayerPositionUpdateMessage.parse bytes |> PlayerPositionUpdateMessage
+            | PlayerTransformUpdateMessageId -> PlayerTransformUpdateMessage.parse bytes |> PlayerTransformUpdateMessage
             | PlayerDisconnectedMessageId -> PlayerDisconnectedMessage.parse bytes |> PlayerDisconnectedMessage
             | _ -> ServerMessage.UnknowMessage
 
     let parseClientMessage (bytes : byte[]) : ClientMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with
-            | PlayerMoveMessageId -> PlayerMoveMessage.parse bytes |> PlayerMoveMessage 
+            | PlayerMoveRotateMessageId -> PlayerMoveRotateMessage.parse bytes |> PlayerMoveRotateMessage 
             | _ -> ClientMessage.UnknowMessage       

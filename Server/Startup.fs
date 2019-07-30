@@ -40,6 +40,7 @@ type Startup() =
                 id = id
                 posX = random.NextDouble() * width
                 posY = random.NextDouble() * height
+                orientation = 0.0
             }
 
             try
@@ -62,10 +63,11 @@ type Startup() =
                     Console.WriteLine("sending info to client " + client.id.ToString())
                     
                     let msg = 
-                        PlayerPositionUpdateMessage.create(
+                        PlayerTransformUpdateMessage.create(
                             newClient.id,
                             newClient.posX,
-                            newClient.posY
+                            newClient.posY,
+                            newClient.orientation
                         )
                     try 
                         client.socket.SendAsync(
@@ -80,10 +82,11 @@ type Startup() =
 
                 for client in clients do
                     let msg = 
-                        PlayerPositionUpdateMessage.create(
+                        PlayerTransformUpdateMessage.create(
                             client.id,
                             client.posX,
-                            client.posY
+                            client.posY,
+                            client.orientation
                         )
 
                     webSocket.SendAsync(
@@ -103,17 +106,19 @@ type Startup() =
                     if result.EndOfMessage then
                         let msg = parseClientMessage buffer
                         match msg with
-                        | PlayerMoveMessage pm ->
+                        | PlayerMoveRotateMessage pm ->
 
                             newClient.posX <- pm.newPosX
                             newClient.posY <- pm.newPosY
+                            newClient.orientation <- pm.orientation
 
                             for client in clients do
                                 let msg = 
-                                    PlayerPositionUpdateMessage.create(
+                                    PlayerTransformUpdateMessage.create(
                                         id,
                                         pm.newPosX,
-                                        pm.newPosY
+                                        pm.newPosY,
+                                        pm.orientation
                                     )
                                 try 
                                     client.socket.SendAsync(

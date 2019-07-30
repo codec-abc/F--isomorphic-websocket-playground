@@ -12,7 +12,7 @@ open Browser.Types
 open Shared
 open Message
 open ClientIdMessage
-open PlayerPositionUpdateMessage
+open PlayerTransformUpdateMessage
 open MathUtil
 
 let window = Dom.window
@@ -165,18 +165,6 @@ let intervalId =
                         Y = moveVectorY 
                     }
 
-                if moveVector.X <> 0.0 || moveVector.Y <> 0.0 then
-                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
-                    let newPos = currentPos + moveVector.Normalized() * updateDelta
-                    let msg = PlayerMoveMessage.create(myId, newPos.X, newPos.Y).ToByteArray()
-
-                    players.[myId].posX <- newPos.X
-                    players.[myId].posY <- newPos.Y
-
-                    socket.send(
-                        msg                    
-                    )
-
                 let mousePosition = app.renderer.plugins.interaction.mouse.``global``
 
                 let mousePos = {
@@ -192,7 +180,23 @@ let intervalId =
                 let dir = (mousePos - myPos).Normalized()
 
                 let angle = atan2 dir.Y dir.X
+                let oldAngle = players.[myId].lookingAngle
                 players.[myId].lookingAngle <- angle
+
+                let hasChanged = moveVector.X <> 0.0 || moveVector.Y <> 0.0 || oldAngle <> angle
+                
+                if moveVector.X <> 0.0 || moveVector.Y <> 0.0  then
+                    let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
+                    let newPos = currentPos + moveVector.Normalized() * updateDelta
+                    players.[myId].posX <- newPos.X
+                    players.[myId].posY <- newPos.Y
+
+                if hasChanged then
+                    let msg = PlayerMoveRotateMessage.create(myId, players.[myId].posX, players.[myId].posY, angle).ToByteArray()
+
+                    socket.send(
+                        msg                    
+                    )
 
                 drawApp()                
                 ()                
@@ -225,16 +229,16 @@ socket.addEventListener_message(
                             id = idMessage.id
                             posX = idMessage.posX
                             posY = idMessage.posY
-                            lookingAngle = 0.0 //TODO
+                            lookingAngle = 0.0
                     }
                     players.Add(idMessage.id, player)
 
-                | PlayerPositionUpdateMessage ppu -> 
+                | PlayerTransformUpdateMessage ppu ->
                     let player = {
                             id = ppu.id
                             posX = ppu.posX
                             posY = ppu.posY
-                            lookingAngle = 0.0
+                            lookingAngle = ppu.orientation
                         }
 
                     if ppu.id <> myId then
@@ -250,7 +254,6 @@ socket.addEventListener_message(
                 | ServerMessage.UnknowMessage -> 
                     console.log("unknow message received")
                     ()
-                    
         fileReader.readAsArrayBuffer(blob)
         false
 )

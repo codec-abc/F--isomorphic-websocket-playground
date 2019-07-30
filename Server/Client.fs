@@ -8,4 +8,5 @@ module Client =
         id : int32
         mutable posX : float
         mutable posY : float
+        mutable orientation : float
     }
