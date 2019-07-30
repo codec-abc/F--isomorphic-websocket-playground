@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../Shared/Const.fs" />
     <Compile Include="../../Shared/Vector2.fs" />
     <Compile Include="../../Shared/PlayerTransformUpdateMessage.fs" />
     <Compile Include="../../Shared/ClientIdMessage.fs" />

@@ -15,14 +15,13 @@ open Shared
 open Message
 open ClientIdMessage
 open Client
+open Const
 
 type Startup() =
 
     let mutable webSocketIdentifier : int = 0
     let clients : List<Client> = List<Client>()
     let random = Random()
-    let width = 600.0
-    let height = 600.0
 
     member this.ConfigureServices(services: IServiceCollection) =
         services.AddMvc() |> ignore
@@ -38,8 +37,8 @@ type Startup() =
             let newClient : Client = {
                 socket = webSocket
                 id = id
-                posX = random.NextDouble() * width
-                posY = random.NextDouble() * height
+                posX = random.NextDouble() * Width
+                posY = random.NextDouble() * Height
                 orientation = 0.0
             }
 

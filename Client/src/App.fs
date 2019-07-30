@@ -46,9 +46,26 @@ type Player = {
 let mutable myId = -1
 let players = Dictionary<int, Player>()
 
+let clamp (num : float, min : float, max : float) =
+    if num <= min then
+        min
+    else if num >= max then
+        max
+    else
+        num
+
+
 let PIXI = PIXI.pixi
 
-let app = PIXI.Application.Create()
+//let x = PIXI.Application. ApplicationStatic.Create()
+
+let options : PIXI.ApplicationStaticOptions = unbox createObj []
+options.width <- Some Const.Width
+options.height <- Some Const.Height
+
+let app = PIXI.Application.Create(options)
+app.resize()
+
 let view = app.view
 document.body.appendChild view |> ignore
 
@@ -188,8 +205,9 @@ let intervalId =
                 if moveVector.X <> 0.0 || moveVector.Y <> 0.0  then
                     let currentPos = { X = players.[myId].posX; Y = players.[myId].posY }
                     let newPos = currentPos + moveVector.Normalized() * updateDelta
-                    players.[myId].posX <- newPos.X
-                    players.[myId].posY <- newPos.Y
+                    
+                    players.[myId].posX <- clamp(newPos.X, 0.0, Const.Width)
+                    players.[myId].posY <- clamp(newPos.Y, 0.0, Const.Height)
 
                 if hasChanged then
                     let msg = PlayerMoveRotateMessage.create(myId, players.[myId].posX, players.[myId].posY, angle).ToByteArray()
