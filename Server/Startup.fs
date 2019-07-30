@@ -23,6 +23,7 @@ type ServerEvent =
     | Tick
     | NewClient of Client
     | ReceivedMessage of ClientMessage * Client
+    | DisconnectClient of Client
 
 type Startup() =
 
@@ -32,9 +33,9 @@ type Startup() =
     let _timer = new Timers.Timer()
     let _serverEvents = ConcurrentQueue<ServerEvent>()
 
-    member this.SendMessage(client : Client, msgContent : byte[]) =
+    member this.SendMessage(clientToSendTo : Client, msgContent : byte[]) =
         try
-            client.socket.SendAsync(
+            clientToSendTo.socket.SendAsync(
                     buffer = new ArraySegment<byte>(msgContent),
                     messageType = WebSocketMessageType.Binary, 
                     endOfMessage = true, 
@@ -43,14 +44,15 @@ type Startup() =
             ()            
         with
             | ex ->
-                if client.socket.State <> WebSocketState.Open then
-                    Console.WriteLine("[1]-TODO Websocket has closed. Removing it client : " + id.ToString())  
+                if clientToSendTo.socket.State <> WebSocketState.Open then
+                    if _clients.Contains(clientToSendTo) then
+                        _clients.Remove(clientToSendTo) |> ignore
+                        _serverEvents.Enqueue(DisconnectClient clientToSendTo)
+                        Console.WriteLine("[1]-Websocket has closed. Removing it client : " + id.ToString())  
 
     member this.Tick() =
-        //Console.WriteLine("ticking")  
         _serverEvents.Enqueue(ServerEvent.Tick)
         let initialCount : int = _serverEvents.Count
-        //Console.WriteLine("initialCount " + initialCount.ToString()) 
         for i in 0..(initialCount - 1) do
             let hasEvent, event = _serverEvents.TryDequeue()
             if hasEvent then
@@ -65,25 +67,51 @@ type Startup() =
             ).ToByteArray()
         
         this.SendMessage(newClient, msg)
+      
+        for otherClient in _clients do
+            let msg = 
+                PlayerTransformUpdateMessage.create(
+                    otherClient.id,
+                    otherClient.posX,
+                    otherClient.posY,
+                    otherClient.orientation
+                ).ToByteArray()
 
-    member this.HandleClientMessage(msg : ClientMessage, client : Client) =
+            this.SendMessage(newClient, msg)
+
+        _clients.Add(newClient)        
+
+    member this.HandleClientMessage(msg : ClientMessage, sender : Client) =
         match msg with
             | PlayerMoveRotateMessage mvMsg ->
                 let msg = 
                     PlayerTransformUpdateMessage.create(
-                        client.id,
+                        sender.id,
                         mvMsg.newPosX,
                         mvMsg.newPosY,
                         mvMsg.orientation
                     ).ToByteArray()
-                for client in _clients do
-                    this.SendMessage(client, msg)
-            | UnknowMessage -> Console.WriteLine("Unknown message received.")
+              
+                for otherClient in _clients do
+                    this.SendMessage(otherClient, msg)
+            | UnknowMessage -> 
+                Console.WriteLine("Unknown message received.")
+
+    member this.HandleDisconnectClient(disconnectedClient : Client) =
+        let msg = 
+            PlayerDisconnectedMessage.create(
+                disconnectedClient.id
+            ).ToByteArray()
+
+        for otherClient in _clients do
+            this.SendMessage(otherClient, msg)
+        ()        
 
     member this.ProcessEvent(event : ServerEvent) =
         match event with
             | NewClient newClient -> this.HandleNewClient(newClient)
             | ReceivedMessage(msg, client) -> this.HandleClientMessage(msg, client)
+            | DisconnectClient client -> this.HandleDisconnectClient(client)
             | Tick -> ()
 
     member this.RunClientSocket(webSocket : WebSocket) : Async<unit> =
@@ -93,7 +121,7 @@ type Startup() =
             Console.WriteLine("web socket accepted. Id = " + id.ToString())
             _webSocketIdentifier <- _webSocketIdentifier + 1
 
-            let newClient : Client = {
+            let currentClient : Client = {
                 socket = webSocket
                 id = id
                 posX = _random.NextDouble() * Width
@@ -101,7 +129,7 @@ type Startup() =
                 orientation = 0.0
             }
 
-            _serverEvents.Enqueue(ServerEvent.NewClient newClient)
+            _serverEvents.Enqueue(ServerEvent.NewClient currentClient)
             let buffer = Array.create 2048 (byte 0)
 
             let mutable shouldContinue = true
@@ -113,11 +141,14 @@ type Startup() =
 
                     if result.EndOfMessage then
                             let msg = parseClientMessage buffer
-                            _serverEvents.Enqueue(ServerEvent.ReceivedMessage(msg, newClient))
+                            _serverEvents.Enqueue(ServerEvent.ReceivedMessage(msg, currentClient))
                     with 
                         | ex ->
                             if webSocket.State <> WebSocketState.Open then
-                                Console.WriteLine("[2]-TODO Websocket has closed. Removing it client : " + id.ToString())
+                                if _clients.Contains(currentClient) then
+                                    _clients.Remove(currentClient) |> ignore
+                                    _serverEvents.Enqueue(DisconnectClient currentClient)
+                                    Console.WriteLine("[2]- Websocket has closed. Removing it client : " + id.ToString())
                                 shouldContinue <- false
 
             Console.WriteLine("client " + id.ToString() + " is ended.")
