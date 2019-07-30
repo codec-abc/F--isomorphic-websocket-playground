@@ -10,6 +10,7 @@
     <Compile Include="../../Shared/ServerMessagePlayerDisconnected.fs" />
     <Compile Include="../../Shared/ClientMessagePlayerTransformUpdate.fs" />
     <Compile Include="../../Shared/MessageId.fs" />
+    <Compile Include="Graphics.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>

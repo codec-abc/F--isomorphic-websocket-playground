@@ -112,7 +112,7 @@ type Startup() =
             | NewClient newClient -> this.HandleNewClient(newClient)
             | ReceivedMessage(msg, client) -> this.HandleClientMessage(msg, client)
             | DisconnectClient client -> this.HandleDisconnectClient(client)
-            | Tick -> ()
+            | Tick -> () // TODO
 
     member this.RunClientSocket(webSocket : WebSocket) : Async<unit> =
         async {
