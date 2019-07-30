@@ -15,7 +15,7 @@ open Microsoft.Extensions.DependencyInjection
 
 open Shared
 open Message
-open ClientIdMessage
+open ServerMessageNewClientId
 open Client
 open Const
 
@@ -60,7 +60,7 @@ type Startup() =
 
     member this.HandleNewClient(newClient : Client) =
         let msg = 
-            ClientIdMessage.create(
+            ServerMessageNewClientId.create(
                 newClient.id, 
                 newClient.posX, 
                 newClient.posY
@@ -70,7 +70,7 @@ type Startup() =
       
         for otherClient in _clients do
             let msg = 
-                PlayerTransformUpdateMessage.create(
+                ServerMessagePlayerTransformUpdate.create(
                     otherClient.id,
                     otherClient.posX,
                     otherClient.posY,
@@ -83,9 +83,9 @@ type Startup() =
 
     member this.HandleClientMessage(msg : ClientMessage, sender : Client) =
         match msg with
-            | PlayerMoveRotateMessage mvMsg ->
+            | ClientMessagePlayerTransformUpdate mvMsg ->
                 let msg = 
-                    PlayerTransformUpdateMessage.create(
+                    ServerMessagePlayerTransformUpdate.create(
                         sender.id,
                         mvMsg.newPosX,
                         mvMsg.newPosY,
@@ -99,7 +99,7 @@ type Startup() =
 
     member this.HandleDisconnectClient(disconnectedClient : Client) =
         let msg = 
-            PlayerDisconnectedMessage.create(
+            ServerMessagePlayerDisconnected.create(
                 disconnectedClient.id
             ).ToByteArray()
 

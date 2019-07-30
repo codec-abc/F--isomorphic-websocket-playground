@@ -1,33 +1,33 @@
 namespace Shared
 
-open ClientIdMessage
-open PlayerTransformUpdateMessage
-open PlayerDisconnectedMessage
-open PlayerMoveRotateMessage
+open ServerMessageNewClientId
+open ServerMessagePlayerTransformUpdate
+open ServerMessagePlayerDisconnected
+open ClientMessagePlayerTransformUpdate
 open System
 
 module Message =
 
     type public ServerMessage =
-        | ClientIdMessage of ClientIdMessage
-        | PlayerTransformUpdateMessage of PlayerTransformUpdateMessage
-        | PlayerDisconnectedMessage of PlayerDisconnectedMessage
+        | ServerMessageNewClientId of ServerMessageNewClientId
+        | ServerMessagePlayerTransformUpdate of ServerMessagePlayerTransformUpdate
+        | ServerMessagePlayerDisconnected of ServerMessagePlayerDisconnected
         | UnknowMessage
 
     type public ClientMessage =
-        | PlayerMoveRotateMessage of PlayerMoveRotateMessage
+        | ClientMessagePlayerTransformUpdate of ClientMessagePlayerTransformUpdate
         | UnknowMessage
 
     let parseServerMessage (bytes : byte[]) : ServerMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with 
-            | ClientIdMessageId -> ClientIdMessage.parse bytes |> ClientIdMessage
-            | PlayerTransformUpdateMessageId -> PlayerTransformUpdateMessage.parse bytes |> PlayerTransformUpdateMessage
-            | PlayerDisconnectedMessageId -> PlayerDisconnectedMessage.parse bytes |> PlayerDisconnectedMessage
+            | ServerMessageNewClientIdId -> ServerMessageNewClientId.parse bytes |> ServerMessageNewClientId
+            | ServerMessagePlayerTransformUpdateId -> ServerMessagePlayerTransformUpdate.parse bytes |> ServerMessagePlayerTransformUpdate
+            | ServerMessagePlayerDisconnectedId -> ServerMessagePlayerDisconnected.parse bytes |> ServerMessagePlayerDisconnected
             | _ -> ServerMessage.UnknowMessage
 
     let parseClientMessage (bytes : byte[]) : ClientMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with
-            | PlayerMoveRotateMessageId -> PlayerMoveRotateMessage.parse bytes |> PlayerMoveRotateMessage 
+            | ClientMessagePlayerTransformUpdateId -> ClientMessagePlayerTransformUpdate.parse bytes |> ClientMessagePlayerTransformUpdate 
             | _ -> ClientMessage.UnknowMessage       

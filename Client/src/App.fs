@@ -11,8 +11,8 @@ open Browser.Types
 
 open Shared
 open Message
-open ClientIdMessage
-open PlayerTransformUpdateMessage
+open ServerMessageNewClientId
+open ServerMessagePlayerTransformUpdate
 open MathUtil
 
 let window = Dom.window
@@ -210,7 +210,7 @@ let intervalId =
                     players.[myId].posY <- clamp(newPos.Y, 0.0, Const.Height)
 
                 if hasChanged then
-                    let msg = PlayerMoveRotateMessage.create(myId, players.[myId].posX, players.[myId].posY, angle).ToByteArray()
+                    let msg = ClientMessagePlayerTransformUpdate.create(myId, players.[myId].posX, players.[myId].posY, angle).ToByteArray()
 
                     socket.send(
                         msg                    
@@ -241,7 +241,7 @@ socket.addEventListener_message(
             let message = Message.parseServerMessage array
 
             match message with
-                | ClientIdMessage idMessage -> 
+                | ServerMessageNewClientId idMessage -> 
                     myId <- idMessage.id
                     let player = {
                             id = idMessage.id
@@ -251,7 +251,7 @@ socket.addEventListener_message(
                     }
                     players.Add(idMessage.id, player)
 
-                | PlayerTransformUpdateMessage ppu ->
+                | ServerMessagePlayerTransformUpdate ppu ->
                     let player = {
                             id = ppu.id
                             posX = ppu.posX
@@ -265,7 +265,7 @@ socket.addEventListener_message(
                         else
                             players.Add(ppu.id, player)                                        
 
-                | PlayerDisconnectedMessage msg ->
+                | ServerMessagePlayerDisconnected msg ->
                     if players.ContainsKey(msg.idOfDisconnectedPlayer) then
                         players.Remove(msg.idOfDisconnectedPlayer) |> ignore                 
 

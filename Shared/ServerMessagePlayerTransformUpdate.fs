@@ -2,12 +2,12 @@ namespace Shared
 
 open System
 
-module PlayerTransformUpdateMessage = 
+module ServerMessagePlayerTransformUpdate = 
 
     [<Literal>]
-    let public PlayerTransformUpdateMessageId = 1
+    let public ServerMessagePlayerTransformUpdateId = 1
 
-    type public PlayerTransformUpdateMessage = {
+    type public ServerMessagePlayerTransformUpdate = {
         id : int
         posX : float
         posY : float
@@ -15,7 +15,7 @@ module PlayerTransformUpdateMessage =
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(PlayerTransformUpdateMessageId)
+            let header = BitConverter.GetBytes(ServerMessagePlayerTransformUpdateId)
 
             Array.concat [ 
                 header
@@ -25,7 +25,7 @@ module PlayerTransformUpdateMessage =
                 BitConverter.GetBytes(this.orientation)
             ]
 
-    let public create(id : int, posX : float, posY : float, orientation : float) : PlayerTransformUpdateMessage =
+    let public create(id : int, posX : float, posY : float, orientation : float) : ServerMessagePlayerTransformUpdate =
         { 
             id = id
             posX = posX
@@ -34,7 +34,7 @@ module PlayerTransformUpdateMessage =
         }
 
     let public parse (bytes: byte[]) =
-        let result : PlayerTransformUpdateMessage = {
+        let result : ServerMessagePlayerTransformUpdate = {
             id = BitConverter.ToInt32(bytes, 4)
             posX = BitConverter.ToDouble(bytes, 8)
             posY = BitConverter.ToDouble(bytes, 16)

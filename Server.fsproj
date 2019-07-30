@@ -8,10 +8,10 @@
   <ItemGroup>
     <Compile Include="Shared/Const.fs" />
     <Compile Include="Shared/Vector2.fs" />
-    <Compile Include="Shared/PlayerTransformUpdateMessage.fs" />
-    <Compile Include="Shared/ClientIdMessage.fs" />
-    <Compile Include="Shared/PlayerDisconnectedMessage.fs" />
-    <Compile Include="Shared/PlayerMoveRotateMessage.fs" />
+    <Compile Include="Shared/ServerMessagePlayerTransformUpdate.fs" />
+    <Compile Include="Shared/ServerMessageNewClientId.fs" />
+    <Compile Include="Shared/ServerMessagePlayerDisconnected.fs" />
+    <Compile Include="Shared/ClientMessagePlayerTransformUpdate.fs" />
     <Compile Include="Shared/MessageId.fs" />
     <Compile Include="Server/Client.fs" />
     <Compile Include="Server/Startup.fs" />

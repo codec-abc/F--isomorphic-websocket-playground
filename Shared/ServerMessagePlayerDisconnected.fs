@@ -2,30 +2,30 @@ namespace Shared
 
 open System
 
-module PlayerDisconnectedMessage = 
+module ServerMessagePlayerDisconnected = 
 
     [<Literal>]
-    let public PlayerDisconnectedMessageId = 2
+    let public ServerMessagePlayerDisconnectedId = 2
 
-    type public PlayerDisconnectedMessage = {
+    type public ServerMessagePlayerDisconnected = {
         idOfDisconnectedPlayer : int
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(PlayerDisconnectedMessageId)
+            let header = BitConverter.GetBytes(ServerMessagePlayerDisconnectedId)
 
             Array.concat [ 
                 header ; 
                 BitConverter.GetBytes(this.idOfDisconnectedPlayer);
             ]
 
-    let public create(id : int) : PlayerDisconnectedMessage =
+    let public create(id : int) : ServerMessagePlayerDisconnected =
         { 
             idOfDisconnectedPlayer = id
         }
 
     let public parse (bytes: byte[]) =
-        let result : PlayerDisconnectedMessage = {
+        let result : ServerMessagePlayerDisconnected = {
             idOfDisconnectedPlayer = BitConverter.ToInt32(bytes, 4)
         } 
         result

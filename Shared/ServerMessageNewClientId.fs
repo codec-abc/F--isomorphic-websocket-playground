@@ -2,19 +2,19 @@ namespace Shared
 
 open System
 
-module ClientIdMessage = 
+module ServerMessageNewClientId = 
 
     [<Literal>]
-    let public ClientIdMessageId = 0
+    let public ServerMessageNewClientIdId = 0
 
-    type public ClientIdMessage = {
+    type public ServerMessageNewClientId = {
         id : int
         posX : float
         posY : float
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(ClientIdMessageId)
+            let header = BitConverter.GetBytes(ServerMessageNewClientIdId)
            
             Array.concat [ 
                 header
@@ -23,7 +23,7 @@ module ClientIdMessage =
                 BitConverter.GetBytes(this.posY)
             ]
 
-    let public create(id : int, posX : float, posY : float) : ClientIdMessage =
+    let public create(id : int, posX : float, posY : float) : ServerMessageNewClientId =
         { 
             id = id
             posX = posX
@@ -31,7 +31,7 @@ module ClientIdMessage =
         }
 
     let public parse (bytes: byte[]) =
-        let result : ClientIdMessage = {
+        let result : ServerMessageNewClientId = {
             id = BitConverter.ToInt32(bytes, 4)
             posX = BitConverter.ToDouble(bytes, 8)
             posY = BitConverter.ToDouble(bytes, 16)

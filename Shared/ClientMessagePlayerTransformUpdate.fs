@@ -2,12 +2,12 @@ namespace Shared
 
 open System
 
-module PlayerMoveRotateMessage = 
+module ClientMessagePlayerTransformUpdate = 
 
     [<Literal>]
-    let public PlayerMoveRotateMessageId = 3
+    let public ClientMessagePlayerTransformUpdateId = 3
 
-    type public PlayerMoveRotateMessage = {
+    type public ClientMessagePlayerTransformUpdate = {
         id : int
         newPosX : float
         newPosY : float
@@ -15,7 +15,7 @@ module PlayerMoveRotateMessage =
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(PlayerMoveRotateMessageId)
+            let header = BitConverter.GetBytes(ClientMessagePlayerTransformUpdateId)
 
             Array.concat [ 
                 header
@@ -25,7 +25,7 @@ module PlayerMoveRotateMessage =
                 BitConverter.GetBytes(this.orientation)
             ]
 
-    let public create(id : int, posX : float, posY : float, orientation : float) : PlayerMoveRotateMessage =
+    let public create(id : int, posX : float, posY : float, orientation : float) : ClientMessagePlayerTransformUpdate =
         { 
             id = id
             newPosX = posX
@@ -34,7 +34,7 @@ module PlayerMoveRotateMessage =
         }
 
     let public parse (bytes: byte[]) =
-        let result : PlayerMoveRotateMessage = {
+        let result : ClientMessagePlayerTransformUpdate = {
             id = BitConverter.ToInt32(bytes, 4)
             newPosX = BitConverter.ToDouble(bytes, 8)
             newPosY = BitConverter.ToDouble(bytes, 16)
