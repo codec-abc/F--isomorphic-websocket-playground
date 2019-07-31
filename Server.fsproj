@@ -7,13 +7,17 @@
 
   <ItemGroup>
     <Compile Include="Shared/Const.fs" />
-    <Compile Include="Shared/Vector2.fs" />
-    <Compile Include="Shared/ServerMessagePlayerTransformUpdate.fs" />
-    <Compile Include="Shared/ServerMessageNewClientId.fs" />
-    <Compile Include="Shared/ServerMessagePlayerDisconnected.fs" />
-    <Compile Include="Shared/ClientMessagePlayerTransformUpdate.fs" />
-    <Compile Include="Shared/MessageId.fs" />
-    <Compile Include="Server/Client.fs" />
+    <Compile Include="Shared/Math/Vector2.fs" />
+    <Compile Include="Shared/Math/LineSegment.fs" />
+    <Compile Include="Shared/Math/HalfOpenLineSegment.fs" />
+    <Compile Include="Shared/Math/Circle.fs" />
+    <Compile Include="Shared/Messages/MessageId.fs" />
+    <Compile Include="Shared/Messages/ServerMessagePlayerTransformUpdate.fs" />
+    <Compile Include="Shared/Messages/ServerMessageNewClientId.fs" />
+    <Compile Include="Shared/Messages/ServerMessagePlayerDisconnected.fs" />
+    <Compile Include="Shared/Messages/ClientMessagePlayerTransformUpdate.fs" />
+    <Compile Include="Shared/Messages/Message.fs" />
+    <Compile Include="Server/ClientData.fs" />
     <Compile Include="Server/Startup.fs" />
     <Compile Include="Server/Program.fs" />
   </ItemGroup>

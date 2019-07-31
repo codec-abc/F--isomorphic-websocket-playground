@@ -1,39 +1,41 @@
 namespace Shared
 
 open System
+open MessageIds
 
-module ServerMessageNewClientId = 
+module ServerMessagePlayerTransformUpdate = 
 
-    [<Literal>]
-    let public ServerMessageNewClientIdId = 0
-
-    type public ServerMessageNewClientId = {
+    type public ServerMessagePlayerTransformUpdate = {
         id : int
         posX : float
         posY : float
+        orientation : float
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(ServerMessageNewClientIdId)
-           
+            let header = BitConverter.GetBytes(ServerMessagePlayerTransformUpdateId)
+
             Array.concat [ 
                 header
                 BitConverter.GetBytes(this.id)
                 BitConverter.GetBytes(this.posX)
                 BitConverter.GetBytes(this.posY)
+                BitConverter.GetBytes(this.orientation)
             ]
 
-    let public create(id : int, posX : float, posY : float) : ServerMessageNewClientId =
+    let public create(id : int, posX : float, posY : float, orientation : float) : ServerMessagePlayerTransformUpdate =
         { 
             id = id
             posX = posX
             posY = posY
+            orientation = orientation
         }
 
     let public parse (bytes: byte[]) =
-        let result : ServerMessageNewClientId = {
+        let result : ServerMessagePlayerTransformUpdate = {
             id = BitConverter.ToInt32(bytes, 4)
             posX = BitConverter.ToDouble(bytes, 8)
             posY = BitConverter.ToDouble(bytes, 16)
+            orientation = BitConverter.ToDouble(bytes, 24)
         } 
         result

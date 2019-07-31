@@ -1,11 +1,9 @@
 namespace Shared
 
 open System
+open MessageIds
 
 module ClientMessagePlayerTransformUpdate = 
-
-    [<Literal>]
-    let public ClientMessagePlayerTransformUpdateId = 3
 
     type public ClientMessagePlayerTransformUpdate = {
         id : int
@@ -15,8 +13,7 @@ module ClientMessagePlayerTransformUpdate =
     } with
         member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(ClientMessagePlayerTransformUpdateId)
-
+            let header = BitConverter.GetBytes(MessageIds.ClientMessagePlayerTransformUpdateId)
             Array.concat [ 
                 header
                 BitConverter.GetBytes(this.id)
@@ -24,6 +21,7 @@ module ClientMessagePlayerTransformUpdate =
                 BitConverter.GetBytes(this.newPosY)
                 BitConverter.GetBytes(this.orientation)
             ]
+
 
     let public create(id : int, posX : float, posY : float, orientation : float) : ClientMessagePlayerTransformUpdate =
         { 

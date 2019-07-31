@@ -1,11 +1,9 @@
 namespace Shared
 
 open System
+open MessageIds
 
 module ServerMessagePlayerDisconnected = 
-
-    [<Literal>]
-    let public ServerMessagePlayerDisconnectedId = 2
 
     type public ServerMessagePlayerDisconnected = {
         idOfDisconnectedPlayer : int

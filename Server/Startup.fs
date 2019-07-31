@@ -21,19 +21,19 @@ open Const
 
 type ServerEvent =
     | Tick
-    | NewClient of Client
-    | ReceivedMessage of ClientMessage * Client
-    | DisconnectClient of Client
+    | NewClient of ClientData
+    | ReceivedMessage of ClientMessage * ClientData
+    | DisconnectClient of ClientData
 
 type Startup() =
 
     let mutable _webSocketIdentifier : int = 0
-    let _clients : Dictionary<int, Client> = Dictionary<int, Client>()
+    let _clients : Dictionary<int, ClientData> = Dictionary<int, ClientData>()
     let _random = Random()
     let _timer = new Timers.Timer()
     let _serverEvents = ConcurrentQueue<ServerEvent>()
 
-    member this.SendMessage(clientToSendTo : Client, msgContent : byte[]) =
+    member this.SendMessage(clientToSendTo : ClientData, msgContent : byte[]) =
         try
             clientToSendTo.socket.SendAsync(
                     buffer = new ArraySegment<byte>(msgContent),
@@ -62,7 +62,7 @@ type Startup() =
         with 
             | ex -> Console.WriteLine("error in tick " + ex.Message + " " + ex.StackTrace)                                            
 
-    member this.HandleNewClient(newClient : Client) =
+    member this.HandleNewClient(newClient : ClientData) =
         let msg = 
             ServerMessageNewClientId.create(
                 newClient.id, 
@@ -86,28 +86,18 @@ type Startup() =
 
         _clients.Add(newClient.id, newClient)        
 
-    member this.HandleClientMessage(msg : ClientMessage, sender : Client) =
+    member this.HandleClientMessage(msg : ClientMessage, sender : ClientData) =
+        // TODO : we should not trust blindly client message
         match msg with
             | ClientMessagePlayerTransformUpdate mvMsg ->
                 if _clients.ContainsKey(sender.id) then                
                     _clients.[sender.id].posX <- mvMsg.newPosX
                     _clients.[sender.id].posY <- mvMsg.newPosY
                     _clients.[sender.id].orientation <- mvMsg.orientation
-
-                    let msg = 
-                        ServerMessagePlayerTransformUpdate.create(
-                            sender.id,
-                            mvMsg.newPosX,
-                            mvMsg.newPosY,
-                            mvMsg.orientation
-                        ).ToByteArray()
-                  
-                    for otherClient in _clients do
-                        this.SendMessage(otherClient.Value, msg)
             | UnknowMessage -> 
                 Console.WriteLine("Unknown message received.")
 
-    member this.HandleDisconnectClient(disconnectedClient : Client) =
+    member this.HandleDisconnectClient(disconnectedClient : ClientData) =
         let msg = 
             ServerMessagePlayerDisconnected.create(
                 disconnectedClient.id
@@ -122,7 +112,19 @@ type Startup() =
             | NewClient newClient -> this.HandleNewClient(newClient)
             | ReceivedMessage(msg, client) -> this.HandleClientMessage(msg, client)
             | DisconnectClient client -> this.HandleDisconnectClient(client)
-            | Tick -> () // TODO
+            | Tick ->
+                for clientVP in _clients do
+                    let client = clientVP.Value
+                    let msg = 
+                        ServerMessagePlayerTransformUpdate.create(
+                            client.id,
+                            client.posX,
+                            client.posY,
+                            client.orientation
+                        ).ToByteArray()
+
+                    for otherClient in _clients do
+                        this.SendMessage(otherClient.Value, msg)
 
     member this.RunClientSocket(webSocket : WebSocket) : Async<unit> =
         async {
@@ -131,7 +133,7 @@ type Startup() =
             Console.WriteLine("web socket accepted. Id = " + id.ToString())
             _webSocketIdentifier <- _webSocketIdentifier + 1
 
-            let currentClient : Client = {
+            let currentClient : ClientData = {
                 socket = webSocket
                 id = id
                 posX = _random.NextDouble() * Width
@@ -206,7 +208,7 @@ type Startup() =
         let thread = 
             System.Threading.Tasks.Task.Run(
                 fun () ->
-                    _timer.Interval <- 30.0
+                    _timer.Interval <- 16.0
 
                     let timerHandler : ElapsedEventHandler = 
                         ElapsedEventHandler(
