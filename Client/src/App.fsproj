@@ -13,6 +13,7 @@
     <Compile Include="../../Shared/Messages/ServerMessageNewClientId.fs" />
     <Compile Include="../../Shared/Messages/ServerMessagePlayerDisconnected.fs" />
     <Compile Include="../../Shared/Messages/ClientMessagePlayerTransformUpdate.fs" />
+    <Compile Include="../../Shared/Messages/ClientMessagePlayerShoot.fs" />
     <Compile Include="../../Shared/Messages/Message.fs" />
     <Compile Include="Graphics.fs" />
     <Compile Include="App.fs" />

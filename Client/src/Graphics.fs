@@ -12,8 +12,8 @@ let weaponIndexSniper = 11;
 let playerSpriteBody = pixi.Sprite.from("top-down-shooter/characters/body/3.png")
 let playerSpriteHead = pixi.Sprite.from("top-down-shooter/characters/head/2.png")
 
-let ennemySpriteBody = pixi.Sprite.from("top-down-shooter/characters/body/4.png")
-let ennemySpriteHead = pixi.Sprite.from("top-down-shooter/characters/head/3.png")
+let ennemySpriteBody = pixi.Sprite.from("top-down-shooter/characters/body/1.png")
+let ennemySpriteHead = pixi.Sprite.from("top-down-shooter/characters/head/4.png")
 
 let weaponTopSniper = 
     pixi.Sprite.from("top-down-shooter/weapons/attach-to-body/" + weaponIndexSniper.ToString() + ".png")

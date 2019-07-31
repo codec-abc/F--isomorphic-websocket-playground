@@ -12,6 +12,7 @@ module Message =
 
     type public ClientMessage =
         | ClientMessagePlayerTransformUpdate of ClientMessagePlayerTransformUpdate
+        | ClientMessagePlayerShoot of ClientMessagePlayerShoot
         | UnknowMessage
 
     let parseServerMessage (bytes : byte[]) : ServerMessage =
@@ -26,4 +27,5 @@ module Message =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with
             | MessageIds.ClientMessagePlayerTransformUpdateId -> ClientMessagePlayerTransformUpdate.Parse bytes |> ClientMessagePlayerTransformUpdate 
-            | _ -> ClientMessage.UnknowMessage       
+            | MessageIds.ClientMessagePlayerShootId -> ClientMessagePlayerShoot.Parse bytes |> ClientMessagePlayerShoot
+            | _ -> ClientMessage.UnknowMessage

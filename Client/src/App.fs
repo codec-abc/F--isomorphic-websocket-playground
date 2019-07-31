@@ -45,6 +45,7 @@ type App() =
     let mutable _playerId = -1
     let _players = Dictionary<int, Player>()
     let _keysStates = Dictionary<char, bool>()
+    let mutable _mouseIsDown = false
     let _playerContainer = createPlayerContainer()
     let _ennemiesRoot = pixi.Container.Create()
     let _socket = WebSocket.Create(_webSocketURI)
@@ -60,7 +61,7 @@ type App() =
 
     let _view = _app.view
 
-    member private this.GetKeyState (key : char) =
+    member private this.GetKeyState(key : char) =
         if _keysStates.ContainsKey key then
             _keysStates.[key]
         else
@@ -74,7 +75,10 @@ type App() =
     member private this.OnKeyDown(event : Event) =
        let keyCode : int = event?keyCode
        let key = char keyCode
-       _keysStates.[key] <- true       
+       _keysStates.[key] <- true
+
+    member private this.OnMouseClick(event : Event) =
+        _mouseIsDown <- true  
 
     member public this.Start() =
         _webSocketURI <- _webSocketURI.Replace("8080", "5000")
@@ -94,6 +98,7 @@ type App() =
 
         _window.addEventListener("keyup", fun event -> this.OnKeyUp(event))
         _window.addEventListener("keydown", fun event -> this.OnKeyDown(event))
+        _window.addEventListener("click", fun event -> this.OnMouseClick(event)) // or use _view to only grab click on canvas ?
 
         _intervalId <- _window.setInterval(
                 fun event -> this.OnUpdate()
@@ -112,7 +117,6 @@ type App() =
         console.log("websocket is closed.")
 
     member this.HandleMessage(message : ServerMessage) =
-        //console.log("got message " + message.ToString())
         match message with
             | ServerMessageNewClientId idMessage -> 
                 _playerId <- idMessage.id
@@ -221,11 +225,19 @@ type App() =
                         orientation = angle
                     }
 
-                let msg = updateMsg.ToByteArray()
+                _socket.send(updateMsg.ToByteArray())
 
-                _socket.send(
-                    msg                    
-                )
+            if _mouseIsDown then
+                _mouseIsDown <- false
+
+                let shootMsg : ClientMessagePlayerShoot =  {
+                    id = _playerId
+                    originX = _players.[_playerId].posX
+                    originY = _players.[_playerId].posY 
+                    angle = _players.[_playerId].lookingAngle
+                }
+
+                _socket.send(shootMsg.ToByteArray())
 
             this.DrawApp()
 
@@ -233,7 +245,7 @@ type App() =
         // TODO : avoid re-create ennemies each frame
         let count = _ennemiesRoot.children.Count
 
-        for i in 0..count - 1 do
+        for _ in 0..count - 1 do
             _ennemiesRoot.removeChildAt(0.0) |> ignore
 
         for kvp in _players do

@@ -48,18 +48,18 @@ type Startup() =
                     if _clients.ContainsKey(clientToSendTo.id) then
                         _clients.Remove(clientToSendTo.id) |> ignore
                         _serverEvents.Enqueue(DisconnectClient clientToSendTo)
-                        Console.WriteLine("[1]-Websocket has closed. Removing it client : " + id.ToString())  
+                        Console.WriteLine("[1]-Websocket has closed. Removing it client : " + id.ToString())
 
     member this.Tick() =
         try
             _serverEvents.Enqueue(ServerEvent.Tick)
             let initialCount : int = _serverEvents.Count
-            for i in 0..(initialCount - 1) do
+            for _ in 0..(initialCount - 1) do
                 let hasEvent, event = _serverEvents.TryDequeue()
                 if hasEvent then
                     this.ProcessEvent(event) 
         with 
-            | ex -> Console.WriteLine("error in tick " + ex.Message + " " + ex.StackTrace)                                            
+            | ex -> Console.WriteLine("error in tick " + ex.Message + " " + ex.StackTrace)
 
     member this.HandleNewClient(newClient : ClientData) =
         let newClientMsg : ServerMessageNewClientId = {
@@ -83,32 +83,33 @@ type Startup() =
             }            
 
             let msg = playerTransformUpdateMsg.ToByteArray()
-
             this.SendMessage(newClient, msg)
 
-        _clients.Add(newClient.id, newClient)        
+        _clients.Add(newClient.id, newClient)
 
     member this.HandleClientMessage(msg : ClientMessage, sender : ClientData) =
-        // TODO : we should not trust blindly client message
+        // TODO : we should not trust blindly clients' messages.
         match msg with
             | ClientMessagePlayerTransformUpdate mvMsg ->
-                if _clients.ContainsKey(sender.id) then                
+                if _clients.ContainsKey(sender.id) then 
                     _clients.[sender.id].posX <- mvMsg.newPosX
                     _clients.[sender.id].posY <- mvMsg.newPosY
                     _clients.[sender.id].orientation <- mvMsg.orientation
+            | ClientMessagePlayerShoot shootMsg ->
+                // TODO
+                ()
             | UnknowMessage -> 
                 Console.WriteLine("Unknown message received.")
 
     member this.HandleDisconnectClient(disconnectedClient : ClientData) =
         let playerDisconnectMsg : ServerMessagePlayerDisconnected = {
-            idOfDisconnectedPlayer = disconnectedClient.id            
+            idOfDisconnectedPlayer = disconnectedClient.id
         }
 
         let msg = playerDisconnectMsg.ToByteArray()
 
         for otherClient in _clients do
             this.SendMessage(otherClient.Value, msg)
-        ()        
 
     member this.ProcessEvent(event : ServerEvent) =
         match event with
@@ -173,7 +174,6 @@ type Startup() =
 
     member this.ConfigureServices(services: IServiceCollection) =
         services.AddMvc() |> ignore
-        ()    
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     member this.Configure(app: IApplicationBuilder, env: IHostingEnvironment) =
@@ -210,18 +210,16 @@ type Startup() =
             ) |> ignore
         ) |> ignore
 
-        let thread = 
-            System.Threading.Tasks.Task.Run(
-                fun () ->
-                    _timer.Interval <- 16.0
+        System.Threading.Tasks.Task.Run(
+            fun () ->
+                _timer.Interval <- 16.0
 
-                    let timerHandler : ElapsedEventHandler = 
-                        ElapsedEventHandler(
-                            fun a b -> 
-                                this.Tick()
-                    )
+                let timerHandler : ElapsedEventHandler = 
+                    ElapsedEventHandler(
+                        fun a b -> 
+                            this.Tick()
+                )
 
-                    _timer.Elapsed.AddHandler(timerHandler)
-                    _timer.Start()
-            )
-        ()
+                _timer.Elapsed.AddHandler(timerHandler)
+                _timer.Start()
+        ) |> ignore
