@@ -3,35 +3,24 @@ namespace Shared
 open System
 open MessageIds
 
-module ClientMessagePlayerTransformUpdate = 
+type public ClientMessagePlayerTransformUpdate = {
+    id : int
+    newPosX : float
+    newPosY : float
+    orientation : float
+} with
+    member this.ToByteArray() : byte[] =
 
-    type public ClientMessagePlayerTransformUpdate = {
-        id : int
-        newPosX : float
-        newPosY : float
-        orientation : float
-    } with
-        member this.ToByteArray() : byte[] =
-
-            let header = BitConverter.GetBytes(MessageIds.ClientMessagePlayerTransformUpdateId)
-            Array.concat [ 
-                header
-                BitConverter.GetBytes(this.id)
-                BitConverter.GetBytes(this.newPosX)
-                BitConverter.GetBytes(this.newPosY)
-                BitConverter.GetBytes(this.orientation)
-            ]
-
-
-    let public create(id : int, posX : float, posY : float, orientation : float) : ClientMessagePlayerTransformUpdate =
-        { 
-            id = id
-            newPosX = posX
-            newPosY = posY
-            orientation = orientation
-        }
-
-    let public parse (bytes: byte[]) =
+        let header = BitConverter.GetBytes(MessageIds.ClientMessagePlayerTransformUpdateId)
+        Array.concat [ 
+            header
+            BitConverter.GetBytes(this.id)
+            BitConverter.GetBytes(this.newPosX)
+            BitConverter.GetBytes(this.newPosY)
+            BitConverter.GetBytes(this.orientation)
+        ]
+        
+    static member public Parse (bytes: byte[]) =
         let result : ClientMessagePlayerTransformUpdate = {
             id = BitConverter.ToInt32(bytes, 4)
             newPosX = BitConverter.ToDouble(bytes, 8)

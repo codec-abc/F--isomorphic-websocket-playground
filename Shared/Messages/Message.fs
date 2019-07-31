@@ -1,10 +1,6 @@
 namespace Shared
 
 open System
-open ServerMessageNewClientId
-open ServerMessagePlayerTransformUpdate
-open ServerMessagePlayerDisconnected
-open ClientMessagePlayerTransformUpdate
 
 module Message =
 
@@ -21,13 +17,13 @@ module Message =
     let parseServerMessage (bytes : byte[]) : ServerMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with 
-            | MessageIds.ServerMessageNewClientIdId -> ServerMessageNewClientId.parse bytes |> ServerMessageNewClientId
-            | MessageIds.ServerMessagePlayerTransformUpdateId -> ServerMessagePlayerTransformUpdate.parse bytes |> ServerMessagePlayerTransformUpdate
-            | MessageIds.ServerMessagePlayerDisconnectedId -> ServerMessagePlayerDisconnected.parse bytes |> ServerMessagePlayerDisconnected
+            | MessageIds.ServerMessageNewClientIdId -> ServerMessageNewClientId.Parse bytes |> ServerMessageNewClientId
+            | MessageIds.ServerMessagePlayerTransformUpdateId -> ServerMessagePlayerTransformUpdate.Parse bytes |> ServerMessagePlayerTransformUpdate
+            | MessageIds.ServerMessagePlayerDisconnectedId -> ServerMessagePlayerDisconnected.Parse bytes |> ServerMessagePlayerDisconnected
             | _ -> ServerMessage.UnknowMessage
 
     let parseClientMessage (bytes : byte[]) : ClientMessage =
         let messageId = BitConverter.ToInt32(bytes, 0)
         match messageId with
-            | MessageIds.ClientMessagePlayerTransformUpdateId -> ClientMessagePlayerTransformUpdate.parse bytes |> ClientMessagePlayerTransformUpdate 
+            | MessageIds.ClientMessagePlayerTransformUpdateId -> ClientMessagePlayerTransformUpdate.Parse bytes |> ClientMessagePlayerTransformUpdate 
             | _ -> ClientMessage.UnknowMessage       

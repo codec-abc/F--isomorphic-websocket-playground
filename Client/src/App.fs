@@ -12,8 +12,6 @@ open Browser.Types
 
 open Shared
 open Message
-open ServerMessageNewClientId
-open ServerMessagePlayerTransformUpdate
 open MathUtil
 open Graphics
 
@@ -216,13 +214,14 @@ type App() =
                 _players.[_playerId].posY <- Utils.clamp(newPos.Y, 0.0, Const.Height)
 
             if hasChanged then
-                let msg = 
-                    ClientMessagePlayerTransformUpdate.create(
-                        _playerId, 
-                        _players.[_playerId].posX, 
-                        _players.[_playerId].posY, 
-                        angle
-                    ).ToByteArray()
+                let updateMsg : ClientMessagePlayerTransformUpdate =  {
+                        id = _playerId
+                        newPosX = _players.[_playerId].posX
+                        newPosY = _players.[_playerId].posY 
+                        orientation = angle
+                    }
+
+                let msg = updateMsg.ToByteArray()
 
                 _socket.send(
                     msg                    

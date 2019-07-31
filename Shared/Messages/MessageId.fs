@@ -14,3 +14,6 @@ module MessageIds =
     [<Literal>]
     let public ClientMessagePlayerTransformUpdateId = 3
 
+    [<Literal>]
+    let public ClientMessagePlayerShootId = 4
+

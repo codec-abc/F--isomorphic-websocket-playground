@@ -15,7 +15,6 @@ open Microsoft.Extensions.DependencyInjection
 
 open Shared
 open Message
-open ServerMessageNewClientId
 open Client
 open Const
 
@@ -63,24 +62,27 @@ type Startup() =
             | ex -> Console.WriteLine("error in tick " + ex.Message + " " + ex.StackTrace)                                            
 
     member this.HandleNewClient(newClient : ClientData) =
-        let msg = 
-            ServerMessageNewClientId.create(
-                newClient.id, 
-                newClient.posX, 
-                newClient.posY
-            ).ToByteArray()
+        let newClientMsg : ServerMessageNewClientId = {
+            id = newClient.id
+            posX = newClient.posX
+            posY = newClient.posY
+        }        
+
+        let msg = newClientMsg.ToByteArray()
         
         this.SendMessage(newClient, msg)
       
         for otherClientVP in _clients do
             let otherClient = otherClientVP.Value
-            let msg = 
-                ServerMessagePlayerTransformUpdate.create(
-                    otherClient.id,
-                    otherClient.posX,
-                    otherClient.posY,
-                    otherClient.orientation
-                ).ToByteArray()
+
+            let playerTransformUpdateMsg : ServerMessagePlayerTransformUpdate = {
+                id = otherClient.id
+                posX = otherClient.posX
+                posY = otherClient.posY
+                orientation = otherClient.orientation
+            }            
+
+            let msg = playerTransformUpdateMsg.ToByteArray()
 
             this.SendMessage(newClient, msg)
 
@@ -98,10 +100,11 @@ type Startup() =
                 Console.WriteLine("Unknown message received.")
 
     member this.HandleDisconnectClient(disconnectedClient : ClientData) =
-        let msg = 
-            ServerMessagePlayerDisconnected.create(
-                disconnectedClient.id
-            ).ToByteArray()
+        let playerDisconnectMsg : ServerMessagePlayerDisconnected = {
+            idOfDisconnectedPlayer = disconnectedClient.id            
+        }
+
+        let msg = playerDisconnectMsg.ToByteArray()
 
         for otherClient in _clients do
             this.SendMessage(otherClient.Value, msg)
@@ -115,13 +118,15 @@ type Startup() =
             | Tick ->
                 for clientVP in _clients do
                     let client = clientVP.Value
-                    let msg = 
-                        ServerMessagePlayerTransformUpdate.create(
-                            client.id,
-                            client.posX,
-                            client.posY,
-                            client.orientation
-                        ).ToByteArray()
+
+                    let playerTransformUpdateMsg : ServerMessagePlayerTransformUpdate = {
+                        id = client.id
+                        posX = client.posX
+                        posY = client.posY
+                        orientation = client.orientation
+                    }
+
+                    let msg = playerTransformUpdateMsg.ToByteArray()
 
                     for otherClient in _clients do
                         this.SendMessage(otherClient.Value, msg)

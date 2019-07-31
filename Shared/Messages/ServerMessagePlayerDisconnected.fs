@@ -3,26 +3,20 @@ namespace Shared
 open System
 open MessageIds
 
-module ServerMessagePlayerDisconnected = 
+type public ServerMessagePlayerDisconnected = {
+    idOfDisconnectedPlayer : int
+} with
 
-    type public ServerMessagePlayerDisconnected = {
-        idOfDisconnectedPlayer : int
-    } with
-        member this.ToByteArray() : byte[] =
+    member this.ToByteArray() : byte[] =
 
-            let header = BitConverter.GetBytes(ServerMessagePlayerDisconnectedId)
+        let header = BitConverter.GetBytes(ServerMessagePlayerDisconnectedId)
 
-            Array.concat [ 
-                header ; 
-                BitConverter.GetBytes(this.idOfDisconnectedPlayer);
-            ]
+        Array.concat [ 
+            header ; 
+            BitConverter.GetBytes(this.idOfDisconnectedPlayer);
+        ]
 
-    let public create(id : int) : ServerMessagePlayerDisconnected =
-        { 
-            idOfDisconnectedPlayer = id
-        }
-
-    let public parse (bytes: byte[]) =
+    static member public Parse (bytes: byte[]) =
         let result : ServerMessagePlayerDisconnected = {
             idOfDisconnectedPlayer = BitConverter.ToInt32(bytes, 4)
         } 
