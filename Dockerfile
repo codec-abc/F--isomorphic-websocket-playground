@@ -8,6 +8,7 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -
 RUN npm install -g yarn
 RUN yarn install
 RUN yarn global add webpack-cli
+RUN yarn global add webpack
 RUN cd ./Client && webpack-cli && cd ..
 
 # COPY Server.fsproj ./
