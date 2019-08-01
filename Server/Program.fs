@@ -16,7 +16,8 @@ module Program =
     let CreateWebHostBuilder args =
         WebHost
             .CreateDefaultBuilder(args)
-            .UseStartup<Startup>();            
+            .UseStartup<Startup>() 
+            .UseUrls("http://*:8080")        
 
     [<EntryPoint>]
     let main args =
