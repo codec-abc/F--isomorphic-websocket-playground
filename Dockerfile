@@ -10,10 +10,8 @@ RUN yarn global add webpack-cli
 RUN yarn global add webpack
 RUN cd ./Client && yarn install && webpack-cli && cd ..
 
-# COPY Server.fsproj ./
 RUN dotnet restore
 
-# COPY . ./
 RUN dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:2.2
