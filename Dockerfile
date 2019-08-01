@@ -6,10 +6,9 @@ COPY . ./
 RUN apt-get update -yq && apt-get upgrade -yq && apt-get install -yq curl git nano
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -yq nodejs build-essential
 RUN npm install -g yarn
-RUN yarn install
 RUN yarn global add webpack-cli
 RUN yarn global add webpack
-RUN cd ./Client && webpack-cli && cd ..
+RUN cd ./Client && yarn install && webpack-cli && cd ..
 
 # COPY Server.fsproj ./
 RUN dotnet restore
