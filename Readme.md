@@ -37,4 +37,12 @@ to compile on change
 
 # Google App Engine deployment
 
-[Follow guide here](https://cloud.google.com/appengine/docs/flexible/dotnet/quickstart) and [here](https://cloud.google.com/appengine/docs/flexible/dotnet/testing-and-deploying-your-app)
+[Follow guide here](https://cloud.google.com/appengine/docs/flexible/dotnet/quickstart) and [here.](https://cloud.google.com/appengine/docs/flexible/dotnet/testing-and-deploying-your-app)
+
+# To build and run on Docker
+
+Just type:
+```
+docker build -t aspnetapp .
+docker run -d -p 5000:80 --name myapp aspnetapp
+```
