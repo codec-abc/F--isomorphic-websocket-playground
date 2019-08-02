@@ -57,5 +57,5 @@ Just type:
 
 ```
 docker build -t aspnetapp .
-docker run  -P aspnetapp
+docker run -P aspnetapp
 ```
