@@ -55,13 +55,13 @@ and Line = {
                 [|p1; p2|]
 
 and LineSegment = {
-    a : Vector2
-    b : Vector2
+    start : Vector2
+    stop : Vector2
 } with 
     member this.Intersect(circle : Circle) =
         let line : Line = {
-            anchor = this.a
-            direction = this.b - this.a
+            anchor = this.start
+            direction = this.stop - this.start
         }
 
         let intersections = line.Intersect(circle)
@@ -76,22 +76,14 @@ and LineSegment = {
                 k >= 0.0 && k <= 1.0
             ) |>
             Array.sortWith (fun point1 point2 ->
-                let k1 = 
-                    if Math.Abs(line.direction.X) > Math.Abs(line.direction.Y) then
-                        (point1.X - line.anchor.X) / line.anchor.X
-                    else
-                        (point1.Y - line.anchor.Y) / line.anchor.Y
-                let k2 = 
-                    if Math.Abs(line.direction.X) > Math.Abs(line.direction.Y) then
-                        (point2.X - line.anchor.X) / line.direction.X
-                    else
-                        (point2.Y - line.anchor.Y) / line.direction.Y
-                if k1 = k2 then
+                let d1 = (point1 - this.start).Magnitude()
+                let d2 = (point2 - this.start).Magnitude()
+                if d1 = d2 then
                     0
-                else if k1 > k2 then
+                else if d1 > d2 then
                     1
                 else
-                    -1
+                    -1   
             )                
 
 and HalfOpenLineSegment = {
@@ -116,19 +108,11 @@ and HalfOpenLineSegment = {
                 k >= 0.0
             ) |>
             Array.sortWith (fun point1 point2 ->
-                let k1 = 
-                    if Math.Abs(this.direction.X) > Math.Abs(this.direction.Y) then
-                        (point1.X - this.start.X) / this.direction.X
-                    else
-                        (point1.Y - this.start.Y) / this.direction.Y
-                let k2 = 
-                    if Math.Abs(this.direction.X) > Math.Abs(this.direction.Y) then
-                        (point2.X - this.start.X) / this.direction.X
-                    else
-                        (point2.Y - this.start.Y) / this.direction.Y
-                if k1 = k2 then
+                let d1 = (point1 - this.start).Magnitude()
+                let d2 = (point2 - this.start).Magnitude()
+                if d1 = d2 then
                     0
-                else if k1 > k2 then
+                else if d1 > d2 then
                     1
                 else
                     -1                                                     
