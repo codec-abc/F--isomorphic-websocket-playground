@@ -1,6 +1,7 @@
 namespace Shared
 
 open System
+open Utils
 open MessageIds
 
 type public ServerMessagePlayerTransformUpdate = {
@@ -20,11 +21,11 @@ type public ServerMessagePlayerTransformUpdate = {
             BitConverter.GetBytes(this.orientation)
         ]
 
-    static member public Parse (bytes: byte[]) =
+    static member public Parse (streamReader: StreamReader) =
         let result : ServerMessagePlayerTransformUpdate = {
-            id = BitConverter.ToInt32(bytes, 4)
-            posX = BitConverter.ToDouble(bytes, 8)
-            posY = BitConverter.ToDouble(bytes, 16)
-            orientation = BitConverter.ToDouble(bytes, 24)
+            id = streamReader.ReadInt32()
+            posX = streamReader.ReadDouble()
+            posY = streamReader.ReadDouble()
+            orientation = streamReader.ReadDouble()
         } 
         result

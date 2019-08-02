@@ -1,6 +1,7 @@
 namespace Shared
 
 open System
+open Utils
 
 module Message =
 
@@ -16,16 +17,30 @@ module Message =
         | UnknowMessage
 
     let parseServerMessage (bytes : byte[]) : ServerMessage =
-        let messageId = BitConverter.ToInt32(bytes, 0)
+        let initialOffset = 0
+        let streamReader = StreamReader(bytes, initialOffset)
+        let messageId = streamReader.ReadInt32()
         match messageId with 
-            | MessageIds.ServerMessageNewClientIdId -> ServerMessageNewClientId.Parse bytes |> ServerMessageNewClientId
-            | MessageIds.ServerMessagePlayerTransformUpdateId -> ServerMessagePlayerTransformUpdate.Parse bytes |> ServerMessagePlayerTransformUpdate
-            | MessageIds.ServerMessagePlayerDisconnectedId -> ServerMessagePlayerDisconnected.Parse bytes |> ServerMessagePlayerDisconnected
-            | _ -> ServerMessage.UnknowMessage
+            | MessageIds.ServerMessageNewClientIdId -> 
+                ServerMessageNewClientId.Parse streamReader |> ServerMessageNewClientId
+
+            | MessageIds.ServerMessagePlayerTransformUpdateId -> 
+                ServerMessagePlayerTransformUpdate.Parse streamReader |> ServerMessagePlayerTransformUpdate
+
+            | MessageIds.ServerMessagePlayerDisconnectedId -> 
+                ServerMessagePlayerDisconnected.Parse streamReader |> ServerMessagePlayerDisconnected
+            | _ -> 
+                ServerMessage.UnknowMessage
 
     let parseClientMessage (bytes : byte[]) : ClientMessage =
-        let messageId = BitConverter.ToInt32(bytes, 0)
+        let initialOffset = 0
+        let streamReader = StreamReader(bytes, initialOffset)
+        let messageId = streamReader.ReadInt32()
         match messageId with
-            | MessageIds.ClientMessagePlayerTransformUpdateId -> ClientMessagePlayerTransformUpdate.Parse bytes |> ClientMessagePlayerTransformUpdate 
-            | MessageIds.ClientMessagePlayerShootId -> ClientMessagePlayerShoot.Parse bytes |> ClientMessagePlayerShoot
+            | MessageIds.ClientMessagePlayerTransformUpdateId -> 
+                ClientMessagePlayerTransformUpdate.Parse streamReader |> ClientMessagePlayerTransformUpdate
+
+            | MessageIds.ClientMessagePlayerShootId -> 
+                ClientMessagePlayerShoot.Parse streamReader |> ClientMessagePlayerShoot
+
             | _ -> ClientMessage.UnknowMessage

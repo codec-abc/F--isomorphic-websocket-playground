@@ -1,6 +1,7 @@
 namespace Shared
 
 open System
+open Utils
 open MessageIds
 
 type public ClientMessagePlayerShoot = {
@@ -22,13 +23,13 @@ type public ClientMessagePlayerShoot = {
             // BitConverter.GetBytes(this.directionY)
         ]
 
-    static member public Parse (bytes: byte[]) =
+    static member public Parse (streamReader: StreamReader) =
         let result : ClientMessagePlayerShoot = {
-            id = BitConverter.ToInt32(bytes, 4)
-            originX = BitConverter.ToDouble(bytes, 8)
-            originY = BitConverter.ToDouble(bytes, 16)
-            angle = BitConverter.ToDouble(bytes, 24)
-            // directionX = BitConverter.ToDouble(bytes, 24)
-            // directionY = BitConverter.ToDouble(bytes, 32)
+            id = streamReader.ReadInt32()
+            originX = streamReader.ReadDouble()
+            originY = streamReader.ReadDouble()
+            angle = streamReader.ReadDouble()
+            // directionX = streamReader.ReadDouble()
+            // directionY = streamReader.ReadDouble()
         } 
         result

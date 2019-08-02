@@ -1,6 +1,7 @@
 namespace Shared
 
 open System
+open Utils
 open MessageIds
 
 type public ServerMessageNewClientId = {
@@ -20,10 +21,10 @@ type public ServerMessageNewClientId = {
             BitConverter.GetBytes(this.posY)
         ]
 
-    static member public Parse (bytes: byte[]) =
+    static member public Parse (streamReader: StreamReader) =
         let result : ServerMessageNewClientId = {
-            id = BitConverter.ToInt32(bytes, 4)
-            posX = BitConverter.ToDouble(bytes, 8)
-            posY = BitConverter.ToDouble(bytes, 16)
+            id = streamReader.ReadInt32()
+            posX = streamReader.ReadDouble()
+            posY = streamReader.ReadDouble()
         } 
         result

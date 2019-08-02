@@ -1,6 +1,7 @@
 namespace Shared
 
 open System
+open Utils
 open MessageIds
 
 type public ServerMessagePlayerDisconnected = {
@@ -16,8 +17,8 @@ type public ServerMessagePlayerDisconnected = {
             BitConverter.GetBytes(this.idOfDisconnectedPlayer);
         ]
 
-    static member public Parse (bytes: byte[]) =
+    static member public Parse (streamReader: StreamReader) =
         let result : ServerMessagePlayerDisconnected = {
-            idOfDisconnectedPlayer = BitConverter.ToInt32(bytes, 4)
+            idOfDisconnectedPlayer = streamReader.ReadInt32()
         } 
         result
