@@ -57,5 +57,5 @@ Just type:
 
 ```
 docker build -t aspnetapp .
-docker run -d -p 8080:5000 --name myapp aspnetapp
+docker run  -P aspnetapp
 ```
