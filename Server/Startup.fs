@@ -125,8 +125,6 @@ type Startup() =
                         if intersectResult.Length > 0 then
                             Console.WriteLine("client has been hit")
                             // TODO
-
-                Console.WriteLine("player shoot")
                 ()
             | UnknowMessage -> 
                 Console.WriteLine("Unknown message received.")
