@@ -34,13 +34,17 @@ Don't forget to add yarn global directory to path so these executable can be fou
 # Server Build
 
 Once the client is built, you can build the server. Just type :
+
 ```
 dotnet run
 ```
+
 To run the server or
+
 ```
 dotnet watch run
 ```
+
 to compile on change
 
 # Google App Engine deployment
@@ -50,6 +54,7 @@ to compile on change
 # To build and run on Docker
 
 Just type:
+
 ```
 docker build -t aspnetapp .
 docker run -d -p 8080:5000 --name myapp aspnetapp
