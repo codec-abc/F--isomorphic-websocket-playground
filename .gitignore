@@ -1,6 +1,8 @@
 wwwroot/bundle.js
 !wwwroot/index.html
 
+out/
+
 public/bundle.js*
 
 # Node
