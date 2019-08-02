@@ -17,6 +17,7 @@ open Shared
 open Message
 open Client
 open Const
+open MathUtil
 
 type ServerEvent =
     | Tick
@@ -89,6 +90,7 @@ type Startup() =
 
     member this.HandleClientMessage(msg : ClientMessage, sender : ClientData) =
         // TODO : we should not trust blindly clients' messages.
+
         match msg with
             | ClientMessagePlayerTransformUpdate mvMsg ->
                 if _clients.ContainsKey(sender.id) then 
@@ -96,7 +98,35 @@ type Startup() =
                     _clients.[sender.id].posY <- mvMsg.newPosY
                     _clients.[sender.id].orientation <- mvMsg.orientation
             | ClientMessagePlayerShoot shootMsg ->
-                // TODO
+
+                let hitscanShootLine : HalfOpenLineSegment = {
+                    start = {
+                        X = shootMsg.originX
+                        Y = shootMsg.originY
+                    }
+                    direction = {
+                        X = Math.Cos(shootMsg.angle)
+                        Y = Math.Sin(shootMsg.angle)
+                    }
+                }
+
+                for clientVP in _clients do
+                    let client = clientVP.Value
+                    if client.id <> sender.id then
+                        let clientHitCircle : Circle = {
+                            center = {
+                                X = client.posX
+                                Y = client.posY
+                            }
+                            radius = PlayerRadius
+                        }
+                        let intersectResult = hitscanShootLine.Intersect(clientHitCircle)
+
+                        if intersectResult.Length > 0 then
+                            Console.WriteLine("client has been hit")
+                            // TODO
+
+                Console.WriteLine("player shoot")
                 ()
             | UnknowMessage -> 
                 Console.WriteLine("Unknown message received.")

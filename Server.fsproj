@@ -8,9 +8,7 @@
   <ItemGroup>
     <Compile Include="Shared/Const.fs" />
     <Compile Include="Shared/Math/Vector2.fs" />
-    <Compile Include="Shared/Math/LineSegment.fs" />
-    <Compile Include="Shared/Math/HalfOpenLineSegment.fs" />
-    <Compile Include="Shared/Math/Circle.fs" />
+    <Compile Include="Shared/Math/Primitives.fs" />
     <Compile Include="Shared/Messages/MessageId.fs" />
     <Compile Include="Shared/Messages/ServerMessagePlayerTransformUpdate.fs" />
     <Compile Include="Shared/Messages/ServerMessageNewClientId.fs" />

@@ -7,13 +7,21 @@
 To build the whole application, first build the client. It will output a single js file (`bundle.js`) in the `wwwroot` directory.
 
 # Client Build
-The first time you need to install dependencies
+
+Go to the client directory
+
+```
+cd Client
+```
+
+The first time you need to install dependencies.
 
 ```
 yarn install
 ```
 
-To compile once you can use `webpack-cli`. To compile on change use `webpack --watch`.
+To compile once you can use `webpack-cli`. If you prefer to compile on change (which is nicer while developing) use `webpack --watch`.
+
 To install both tools you can do the following:
 
 ```

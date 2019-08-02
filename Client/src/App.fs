@@ -227,6 +227,9 @@ type App() =
 
                 _socket.send(updateMsg.ToByteArray())
 
+
+            //console.log("angle is " + _players.[_playerId].lookingAngle.ToString())
+
             if _mouseIsDown then
                 _mouseIsDown <- false
 
